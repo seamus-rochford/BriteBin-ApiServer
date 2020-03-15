@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.trandonsystems.britebin.auth.JWTTokenNeeded;
 import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.model.User;
 import com.trandonsystems.britebin.services.UserServices;
@@ -36,6 +37,7 @@ public class UserResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUserById/{userId}")
+	@JWTTokenNeeded
 	public User getUserById(@PathParam("userId") int userId) {
 		return userServices.getUser(userId);
 	}
@@ -43,15 +45,17 @@ public class UserResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUser/{email}")
+	@JWTTokenNeeded
 	public User getUser(@PathParam("email") String email) {
 		return userServices.getUser(email);
 	}
     
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("getUsers")
-	public List<User> getUsers() {
-		return userServices.getUsers();
+	@Path("getUsers/{parentId}")
+	@JWTTokenNeeded
+	public List<User> getUsers(@PathParam("parentId") int parentId) {
+		return userServices.getUsers(parentId);
 	}
     
 	@POST
@@ -78,7 +82,7 @@ public class UserResource {
 			default:
 				String token = JsonWebToken.createJWT(user);
 				// Clear the password so that it is NOT sent back
-				user.password = "";
+				user.password = null;
 				Gson gson = new GsonBuilder().setPrettyPrinting().create();
 				String userJson = gson.toJson(user);
 				

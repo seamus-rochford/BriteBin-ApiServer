@@ -56,6 +56,7 @@ public class UserDAL {
 				user.role = rs.getInt("role");
 				user.parentId = rs.getInt("parentId");
 				user.status = rs.getInt("status");
+				user.locale = rs.getString("locale");
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
@@ -145,6 +146,7 @@ public class UserDAL {
 				user.role = rs.getInt("role");
 				user.parentId = rs.getInt("parentId");
 				user.status = rs.getInt("status");
+				user.locale = rs.getString("locale");
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
@@ -157,7 +159,7 @@ public class UserDAL {
 				user.workTel = rs.getString("workTel");
 				
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("last_logged_in");
+				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
 				if (lastLoggedIn == null) {
 					user.lastLoggedIn = null;
 				}
@@ -167,7 +169,7 @@ public class UserDAL {
 				}
 				
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("last_activity");
+				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
 					user.lastActivity = null;
 				}
@@ -234,6 +236,7 @@ public class UserDAL {
 				user.role = rs.getInt("role");
 				user.parentId = rs.getInt("parentId");
 				user.status = rs.getInt("status");
+				user.locale = rs.getString("locale");
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
@@ -246,7 +249,7 @@ public class UserDAL {
 				user.workTel = rs.getString("workTel");
 				
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("last_logged_in");
+				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
 				if (lastLoggedIn == null) {
 					user.lastLoggedIn = null;
 				}
@@ -256,7 +259,7 @@ public class UserDAL {
 				}
 				
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("last_logged_in");
+				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
 					user.lastActivity = null;
 				}
@@ -296,7 +299,7 @@ public class UserDAL {
 		return user;
 	}
 
-	public static List<User> getUsers() {
+	public static List<User> getUsers(int parentId) {
 
 		log.info("UserDAL.getUsers");
 		try {
@@ -326,6 +329,7 @@ public class UserDAL {
 				user.role = rs.getInt("role");
 				user.parentId = rs.getInt("parentId");
 				user.status = rs.getInt("status");
+				user.locale = rs.getString("locale");
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
@@ -338,7 +342,7 @@ public class UserDAL {
 				user.workTel = rs.getString("workTel");
 				  
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("last_logged_in");
+				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
 				if (lastLoggedIn == null) {
 					user.lastLoggedIn = null;
 				}
@@ -348,7 +352,7 @@ public class UserDAL {
 				}
 				
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("last_logged_in");
+				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
 					user.lastActivity = null;
 				}
@@ -389,14 +393,26 @@ public class UserDAL {
 		return users;
 	}
 
-	public static String encryptedPassword(String password) {
-		log.info("UserDAL.encryptedPassword");
-		return passwordEncryptor.encryptPassword(password);
+//	public static String encryptedPassword(String password) {
+//		log.info("UserDAL.encryptedPassword");
+//		return passwordEncryptor.encryptPassword(password);
+//	}
+//	public static boolean passwordMatch(String inputPassword, String encryptedPassword) {
+//		log.info("UserDAL.passwordMatch");
+//		return passwordEncryptor.checkPassword(inputPassword, encryptedPassword);
+//	}
+	
+	public static String encryptPassword(String password) {
+		log.info("UserDAL.encryptPassword");
+		return Util.MD5(password);
 	}
 	
 	public static boolean passwordMatch(String inputPassword, String encryptedPassword) {
 		log.info("UserDAL.passwordMatch");
-		return passwordEncryptor.checkPassword(inputPassword, encryptedPassword);
+		log.info("inputPassword: " + inputPassword);
+		log.info("inputPassword.md5: " + Util.MD5(inputPassword));
+		log.info("DB Password: " + encryptedPassword);
+		return (Util.MD5(inputPassword).equals(encryptedPassword));
 	}
 	
 	// Update user - NOTE: Pwd is NOT updated
@@ -410,7 +426,7 @@ public class UserDAL {
 		log.info("UserDAL.save");
 		int userId = user.id;
 
-		String sqlStmt = "UPDATE user SET fname = ?, lname = ?, tel = ?, email = ?, role_id = ?, status = ?, operator_id = ?, bank_id = ?, modified_date = ?, modified_by = ?"
+		String sqlStmt = "UPDATE user SET fname = ?, lname = ?, tel = ?, email = ?, role_id = ?, status = ?, locale = ?, operator_id = ?, bank_id = ?, modified_date = ?, modified_by = ?"
 					+ " WHERE id = ?";
 
 		log.debug("SQL: " + sqlStmt);
@@ -431,6 +447,9 @@ public class UserDAL {
 				
 				log.debug("Set Status: " + user.status);
 				prepStmt.setInt(6, user.status);
+				
+				log.debug("Set Locale: " + user.locale);
+				prepStmt.setString(6, user.locale);
 				
 				Instant currentInstant = Instant.now().truncatedTo(ChronoUnit.SECONDS); //gives UTC datetime
 				user.modifiedDate = currentInstant;
@@ -532,4 +551,7 @@ public class UserDAL {
 		
 	}
 	
+	public static void updateLastLoggedIn(String email) {
+		// Implement this
+	}
 }

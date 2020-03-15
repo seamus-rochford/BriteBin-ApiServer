@@ -14,6 +14,7 @@ public class User {
 	public int role;  
 	public int parentId;  
 	public int status;  // 0 - registered, 1 - email verified, 2 - verified
+	public String locale;
 	public String name;
 	public String addr1;
 	public String addr2;

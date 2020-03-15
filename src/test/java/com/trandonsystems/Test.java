@@ -5,8 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.database.UserDAL;
+import com.trandonsystems.britebin.database.Util;
+import com.trandonsystems.britebin.model.SigfoxBody;
 import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.model.User;
+import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
 
@@ -24,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -34,7 +38,18 @@ public class Test {
 	static Logger log = Logger.getLogger(Test.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+	private static void testLogging() {
+		
+		log.trace("Trace logging");
+		log.debug("Debug logging");
+		log.info("Info logging");
+		log.warn("Warn logging");
+		log.error("Error logging");
+		log.fatal("Fatal logging");
+	}
+	
 	private static void testInstantFormating() {
+	
 		DateTimeFormatter formatter =
 			    DateTimeFormatter.ofPattern("HH:mm:ss")
 			                     .withLocale( Locale.UK )
@@ -53,6 +68,8 @@ public class Test {
 		log.info("Catalina Home: "  + System.getenv("{catalina.home}"));
 
 		log.info("ENV_NAME: " + System.getenv(("{ENV_HOME}")));
+		log.info("BRITEBIN_API_KEY: " + System.getenv(("{BRITEBIN_API_KEY}")));
+		log.info("System Env Variables: " + System.getenv());
 	}
 	
 
@@ -118,33 +135,84 @@ public class Test {
 		log.info("Login result: " + result);
 		log.info(gson.toJson(user));
 	}
+
 	
 	private static void testPasswordEncryption() {
-		String passwordEncrypted = passwordEncryptor.encryptPassword("colm");
+		// Passowrd set at the moment
+		// tommy = tommy
+		// colm = colm
+		// lorand = lorandK
+		// seamus = Rebel1
+		// tomislav = tom
+		String passwordEncrypted = UserDAL.encryptPassword("tommy");
 		System.out.println(passwordEncrypted);
-		boolean result = UserDAL.passwordMatch("seamus", passwordEncrypted);
+		boolean result = UserDAL.passwordMatch("tommy", passwordEncrypted);
 		System.out.println("Password Matches: " + result);
+
+		String encryptedStr = Util.MD5("tommy");
+		System.out.println(encryptedStr);
+	
+	}
+	
+	private static void testUsers() {
+	
+		UserServices us = new UserServices();	
+		List<User> users = us.getUsers(1);
+		
+		log.info("Users: ");
+		log.info(gson.toJson(users));
 	}
 	
 	private static void testUnitReadings() {
 		
 		UnitServices us = new UnitServices();
-		List<UnitReading> list = us.getUnitReadings("0861075021004552");
+		List<UnitReading> list = us.getUnitReadings(1, "0861075021004552");
 		
 		log.info("Readings: ");
 		log.info(gson.toJson(list));
+	}
+	
+	private static String getRandomGuid() {
+		String guid = UUID.randomUUID().toString();
+		
+		log.info("Guid: " + guid);
+		return guid;
+	}
+	
+	private static void testSaveData() {
+		SigfoxBody data = new SigfoxBody();
+		
+		data.deviceId = "ABCDWXYZ";
+		data.rssi = "123";
+		data.snr = "11";
+		data.payload = "01284800554466345A760000";
+		
+		try {	
+			SigfoxServices ss = new SigfoxServices();
+			ss.saveData("ABCDWXYZ", data);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
 	}
 	
 	public static void main(String[] args) {
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+		testSaveData();
+		
+//		testLogging();
+		
 //		testInstantFormating();
 //		testEnvVariables();
 //		testLogin();
 //		testJwtToken();
-		testPasswordEncryption();
-//	
+//		getRandomGuid();
+//		testPasswordEncryption();
+
+	
+//		testUsers();
+		
 //		testUnitReadings();
 
 	}

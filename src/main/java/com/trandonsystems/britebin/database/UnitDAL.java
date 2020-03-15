@@ -29,7 +29,7 @@ public class UnitDAL {
 
 	}
 
-	public static Unit get(int id) {
+	public static Unit get(int parentId, int id) {
 
 		log.info("UnitDAL.get(id)");
 		try {
@@ -102,7 +102,7 @@ public class UnitDAL {
 		return unit;
 	}
 
-	public static Unit get(String serialNo) {
+	public static Unit get(int parentId, String serialNo) {
 
 		log.info("UnitDAL.get(serialNo)");
 		try {
@@ -176,7 +176,41 @@ public class UnitDAL {
 		return unit;
 	}
 
-	public static List<Unit> getUnits() {
+	public static Unit getUnitBySerialNo(String serialNo) {
+		log.info("UnitDAL.getUnitBySerialNo(serialNo)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call GetUnitBySerialNo(?) }";
+		log.info("SP Call: " + spCall);
+		
+		Unit unit = new Unit();
+		
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, serialNo);
+			ResultSet rs = spStmt.executeQuery();
+
+			unit.serialNo = serialNo;
+			if (rs.next()) {
+				unit.id = rs.getInt("id");
+				unit.location = rs.getString("location");
+			}
+
+			log.debug("UnitDAL.getUnitBySerialNo(serialNo) - end");
+		} catch (SQLException ex) {
+			log.error(ex.getMessage());
+		}
+
+		return unit;
+	}
+
+	
+	public static List<Unit> getUnits(int parentId) {
 
 		log.info("UnitDAL.getUnits");
 		try {
@@ -221,7 +255,7 @@ public class UnitDAL {
 				}
 
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insert_date");
+				Timestamp insertDate = rs.getTimestamp("insertDate");
 				if (insertDate == null) {
 					unit.insertDate = null;
 				}
@@ -229,10 +263,10 @@ public class UnitDAL {
 					java.time.Instant insertDateInstant = insertDate.toInstant();
 					unit.insertDate = insertDateInstant;
 				}
-				unit.insertBy = rs.getInt("insert_by");
+				unit.insertBy = rs.getInt("insertBy");
 				
 				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modified_date");
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
 				if (modifiedDate == null) {
 					unit.modifiedDate = null;
 				}
@@ -240,7 +274,7 @@ public class UnitDAL {
 					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
 					unit.modifiedDate = modifiedDateInstant;
 				}
-				unit.modifiedBy = rs.getInt("modified_by");
+				unit.modifiedBy = rs.getInt("modifiedBy");
 
 				units.add(unit);
 			}
@@ -251,7 +285,7 @@ public class UnitDAL {
 		return units;
 	}
 
-	public static List<UnitReading> getUnitReadings(int unitId) {
+	public static List<UnitReading> getUnitReadings(int parentId, int unitId) {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
 		try {
@@ -279,7 +313,7 @@ public class UnitDAL {
 				unitReading.msgType = rs.getInt("msgType");
 				unitReading.binLevel = rs.getInt("binLevel");
 				unitReading.binLevelBC = rs.getInt("BinLevelBC");
-				unitReading.noFlapOpening = rs.getInt("binLevelBC");
+				unitReading.noFlapOpening = rs.getInt("noFlapOpenings");
 				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
 				unitReading.temperature = rs.getInt("temperature");
 				unitReading.noCompactions = rs.getInt("noCompactions");
@@ -294,6 +328,11 @@ public class UnitDAL {
 				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
 				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
 
+				unitReading.rssi = rs.getInt("rssi");
+				unitReading.src = rs.getInt("src");
+				unitReading.snr = rs.getInt("snr");
+				unitReading.ber = rs.getInt("ber");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
 				if (readingDateTime == null) {
@@ -323,7 +362,7 @@ public class UnitDAL {
 		return unitReadings;
 	}
 
-	public static List<UnitReading> getUnitReadings(String serialNo) {
+	public static List<UnitReading> getUnitReadings(int parentId, String serialNo) {
 
 		log.info("UnitDAL.getUnitReadings(serialNo)");
 		try {
@@ -348,11 +387,88 @@ public class UnitDAL {
 
 				unitReading.serialNo = serialNo;
 				unitReading.unitId = rs.getInt("unitId");
-				unitReading.serialNo = rs.getString("serialNo");
 				unitReading.msgType = rs.getInt("msgType");
 				unitReading.binLevel = rs.getInt("binLevel");
 				unitReading.binLevelBC = rs.getInt("BinLevelBC");
-				unitReading.noFlapOpening = rs.getInt("binLevelBC");
+				unitReading.noFlapOpening = rs.getInt("noFlapOpenings");
+				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
+				unitReading.temperature = rs.getInt("temperature");
+				unitReading.noCompactions = rs.getInt("noCompactions");
+				unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
+				
+				unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
+				unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
+				unitReading.overUnderTempLO = (rs.getInt("overUnderTempLO") == 1);
+				unitReading.binLocked = (rs.getInt("binLocked") == 1);
+				unitReading.binFull = (rs.getInt("binFull") == 1);
+				unitReading.binTilted = (rs.getInt("binTilted") == 1);
+				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
+				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
+
+				unitReading.rssi = rs.getInt("rssi");
+				unitReading.src = rs.getInt("src");
+				unitReading.snr = rs.getInt("snr");
+				unitReading.ber = rs.getInt("ber");
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
+				if (readingDateTime == null) {
+					unitReading.readingDateTime = null;
+				}
+				else {
+					java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
+					unitReading.readingDateTime = readingDateTimenInstant;
+				}
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp insertDateTime = rs.getTimestamp("insertDateTime");
+				if (insertDateTime == null) {
+					unitReading.insertDateTime = null;
+				}
+				else {
+					java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
+					unitReading.insertDateTime = insertDateTimeInstant;
+				}
+
+				unitReadings.add(unitReading);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return unitReadings;
+	}
+
+	public static List<UnitReading> getUnitReadings(int parentId, String serialNo, int limit) {
+
+		log.info("UnitDAL.getUnitReadings(serialNo)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
+
+		String spCall = "{ call GetUnitReadingsLimit(?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, serialNo);
+			spStmt.setInt(2, limit);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				UnitReading unitReading = new UnitReading();
+
+				unitReading.serialNo = serialNo;
+				unitReading.unitId = rs.getInt("unitId");
+				unitReading.msgType = rs.getInt("msgType");
+				unitReading.binLevel = rs.getInt("binLevel");
+				unitReading.binLevelBC = rs.getInt("BinLevelBC");
+				unitReading.noFlapOpening = rs.getInt("noFlapOpenings");
 				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
 				unitReading.temperature = rs.getInt("temperature");
 				unitReading.noCompactions = rs.getInt("noCompactions");
@@ -396,8 +512,98 @@ public class UnitDAL {
 		return unitReadings;
 	}
 
+	public static long saveRawData(byte[] data) throws SQLException{
+
+		log.info("UnitDAL.saveRawData(data) - start");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+			throw new SQLException("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call SaveRawData(?) }";
+		log.info("SP Call: " + spCall);
+
+		long id = 0;
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setBytes(1, data);
+			ResultSet rs = spStmt.executeQuery();
+			
+			if (rs.next()) {
+				id = rs.getInt("id");
+			}
+
+		} catch (SQLException ex) {
+			log.error(ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UnitDAL.saveRawData(data) - end");
+		return id;
+	}	
+
+	public static void saveReading(long rawDataId, long unitId, UnitReading reading) throws SQLException {
+
+		log.info("UnitDAL.saveReading(rawDataId, unitId, reading)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call SaveReading(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setLong(1, unitId);
+			spStmt.setString(2, reading.serialNo);
+			spStmt.setLong(3, rawDataId);
+			spStmt.setInt(4, reading.msgType);
+			spStmt.setInt(5, reading.binLevelBC);
+			spStmt.setInt(6, reading.binLevel);
+			spStmt.setInt(7, reading.noFlapOpening);
+			spStmt.setInt(8, reading.batteryVoltage);
+			spStmt.setInt(9, reading.temperature);
+			spStmt.setInt(10, reading.noCompactions);
+			spStmt.setInt(11, reading.batteryUVLO ? 1 : 0);
+			spStmt.setInt(12, reading.binEmptiedLastPeriod ? 1 : 0);
+			spStmt.setInt(13, reading.overUnderTempLO ? 1 : 0);
+			spStmt.setInt(14, reading.binLocked ? 1 : 0);
+			spStmt.setInt(15, reading.binFull ? 1 : 0);
+			spStmt.setInt(16, reading.binTilted ? 1 : 0);
+			spStmt.setInt(17, reading.serviceDoorOpen ? 1 : 0);
+			spStmt.setInt(18, reading.flapStuckOpen ? 1 : 0);
+			spStmt.setInt(19, reading.nbIoTSignalStrength);
+			spStmt.setInt(20, reading.rssi);
+			spStmt.setInt(21, reading.src);
+			spStmt.setInt(22, reading.snr);
+			spStmt.setInt(23, reading.ber);
+
+			// Convert java.time.Instant to java.sql.timestamp
+			Timestamp ts = Timestamp.from(reading.readingDateTime);
+		    spStmt.setTimestamp(24, ts);
+		    
+		    spStmt.executeQuery();
+
+		} catch (SQLException ex) {
+			log.error("UnitDAL.saveReading: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UnitDAL.saveReading(rawDataId, unitId, reading) - end");
+
+		return;
+	}
+	
+
+
 	// TODO - Body not yet done
-	public static Unit save(Unit unit, int currentUserId) throws Exception {
+ 	public static Unit save(int parentId, Unit unit, int currentUserId) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {

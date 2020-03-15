@@ -12,29 +12,34 @@ public class UnitServices {
 
 	static Logger log = Logger.getLogger(UnitServices.class);
 
-	public Unit getUnit(int id) {
-		log.info("UnitServices.getUnit(id)");
-		return UnitDAL.get(id);
+	public Unit getUnit(int parentId, int id) {
+		log.info("UnitServices.getUnit(parentId, id)");
+		return UnitDAL.get(parentId, id);
 	}
 
-	public Unit getUnit(String serialNo) {
-		log.info("UnitServices.getUnit(serialNo)");
-		return UnitDAL.get(serialNo);
+	public Unit getUnit(int parentId, String serialNo) {
+		log.info("UnitServices.getUnit(parentId, serialNo)");
+		return UnitDAL.get(parentId, serialNo);
 	}
 
-	public List<Unit> getUnits() {
-		log.info("UnitServices.getUnits");
-		return UnitDAL.getUnits();
+	public List<Unit> getUnits(int parentId) {
+		log.info("UnitServices.getUnits(parentId)");
+		return UnitDAL.getUnits(parentId);
 	}
 
-	public List<UnitReading> getUnitReadings(int id) {
-		log.info("UnitServices.getUnitReadings(id)");
-		return UnitDAL.getUnitReadings(id);
+	public List<UnitReading> getUnitReadings(int parentId, int id) {
+		log.info("UnitServices.getUnitReadings(parentId, id)");
+		return UnitDAL.getUnitReadings(parentId, id);
 	}
 
-	public List<UnitReading> getUnitReadings(String serialNo) {
-		log.info("UnitServices.getUnitReadings(id)");
-		return UnitDAL.getUnitReadings(serialNo);
+	public List<UnitReading> getUnitReadings(int parentId, String serialNo) {
+		log.info("UnitServices.getUnitReadings(parentId, id)");
+		return UnitDAL.getUnitReadings(parentId, serialNo);
+	}
+
+	public List<UnitReading> getUnitReadings(int parentId, String serialNo, int limit) {
+		log.info("UnitServices.getUnitReadings(parentId, id, limit)");
+		return UnitDAL.getUnitReadings(parentId, serialNo, limit);
 	}
 
 }

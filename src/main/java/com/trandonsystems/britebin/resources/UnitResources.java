@@ -24,50 +24,67 @@ public class UnitResources {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String test() {
-        return "User resource is working!";
+        return "Unit resource is working!";
     }
     
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("geUnitById/{userId}/{unitId}")
-	public Unit getUnitById(@PathParam("userId") int userId, @PathParam("unitId") int unitId) {
-		log.info("getUnitById(unitId)");
-		return unitServices.getUnit(unitId);
+	@Path("getUnit/{parentId}/unitId/{unitId}")
+	public Unit getUnitById(@PathParam("parentId") int parentId, @PathParam("unitId") int unitId) {
+		log.info("getUnitById(parentId, unitId)");
+		return unitServices.getUnit(parentId, unitId);
 	}
 
     
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("geUnit/{userId}/{serialNo}")
-	public Unit getUnit(@PathParam("userId") int userId, @PathParam("serialNo") String serialNo) {
-		log.info("getUnit(serialNo)");
-		return unitServices.getUnit(serialNo);
+	@Path("getUnit/{parentId}/serialNo/{serialNo}")
+	public Unit getUnit(@PathParam("parentId") int parentId, @PathParam("serialNo") String serialNo) {
+		log.info("getUnit(parentId, serialNo)");
+		return unitServices.getUnit(parentId, serialNo);
 	}
 
     
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("getUnits/{userId}")
-	public List<Unit> getUnits(@PathParam("userId") int userId) {
+	@Path("getUnits/{parentId}")
+	public List<Unit> getUnits(@PathParam("parentId") int parentId) {
 		log.info("getUnits()");
-		return unitServices.getUnits();
+		return unitServices.getUnits(parentId);
 	}
     	
     
+	// This one was created for engineers testing units
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("getUnitReadingsById/{userId}/{unitId}")
-	public List<UnitReading> getUnitReadingsByUnitId(@PathParam("userId") int userId, @PathParam("unitId") int unitId) {
-		log.info("getUnitReadingsByUnitId(unitId)");
-		return unitServices.getUnitReadings(unitId);
+	@Path("getUnitReadings/{serialNo}")
+	public List<UnitReading> getUnitReadings(@PathParam("serialNo") String serialNo) {
+		log.info("getUnitReadings(serialNo)");
+		return unitServices.getUnitReadings(1, serialNo);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("getUnitReadings/{userId}/{serialNo}")
-	public List<UnitReading> getUnitReadings(@PathParam("userId") int userId, @PathParam("serialNo") String serialNo) {
+	@Path("getUnitReadings/{serialNo}/limit/{limit}")
+	public List<UnitReading> getUnitReadings(@PathParam("serialNo") String serialNo, @PathParam("limit") int limit) {
+		log.info("getUnitReadings(serialNo, limit)");
+		return unitServices.getUnitReadings(1, serialNo, limit);
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getUnitReadings/{parentId}/unitId/{unitId}")
+	public List<UnitReading> getUnitReadingsByUnitId(@PathParam("parentId") int parentId, @PathParam("unitId") int unitId) {
+		log.info("getUnitReadingsByUnitId(unitId)");
+		return unitServices.getUnitReadings(parentId, unitId);
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getUnitReadings/{parentId}/serialNo/{serialNo}")
+	public List<UnitReading> getUnitReadings(@PathParam("parentId") int parentId, @PathParam("serialNo") String serialNo) {
 		log.info("getUnitReadings(serialNo)");
-		return unitServices.getUnitReadings(serialNo);
+		return unitServices.getUnitReadings(parentId, serialNo);
 	}
 
 }
