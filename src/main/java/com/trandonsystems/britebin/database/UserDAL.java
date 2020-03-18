@@ -119,7 +119,7 @@ public class UserDAL {
 		return user;
 	}
 
-	public static User get(int id) {
+	public static User get(int parentId, int id) {
 
 		log.info("UserDAL.get(id)");
 		try {
@@ -128,19 +128,22 @@ public class UserDAL {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call GetUserById(?) }";
+		String spCall = "{ call GetUserById(?, ?) }";
 		log.info("SP Call: " + spCall);
 		
-		User user = new User();
+		User user = null;
 		
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, id);
+			spStmt.setInt(1, parentId);
+			spStmt.setInt(2, id);
 			ResultSet rs = spStmt.executeQuery();
 
-			user.id = id;
 			if (rs.next()) {
+				user = new User();
+				
+				user.id = id;
 				user.email = rs.getString("email");
 				user.password = rs.getString("password");
 				user.role = rs.getInt("role");
@@ -209,7 +212,7 @@ public class UserDAL {
 		return user;
 	}
 
-	public static User get(String email) {
+	public static User get(int parentId, String email) {
 
 		log.info("UserDAL.get(email)");
 		try {
@@ -218,19 +221,22 @@ public class UserDAL {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call GetUser(?) }";
+		String spCall = "{ call GetUser(?, ?) }";
 		log.info("SP Call: " + spCall);
 
-		User user = new User();
+		User user = null;
 		
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setString(1, email);
+			spStmt.setInt(1, parentId);
+			spStmt.setString(2, email);
 			ResultSet rs = spStmt.executeQuery();
 
-			user.email = email;
 			if (rs.next()) {
+				user = new User();
+				
+				user.email = email;
 				user.id = rs.getInt("id");
 				user.password = rs.getString("password");
 				user.role = rs.getInt("role");
@@ -310,12 +316,13 @@ public class UserDAL {
 
 		List<User> users = new ArrayList<User>();
 
-		String spCall = "{ call GetUsers() }";
+		String spCall = "{ call GetUsers(?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
+			spStmt.setInt(1, parentId);
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
@@ -340,7 +347,9 @@ public class UserDAL {
 				user.mobile = rs.getString("mobile");
 				user.homeTel = rs.getString("homeTel");
 				user.workTel = rs.getString("workTel");
-				  
+				
+				user.binLevelAlert = rs.getInt("binLevelAlert");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
 				if (lastLoggedIn == null) {
@@ -426,7 +435,7 @@ public class UserDAL {
 		log.info("UserDAL.save");
 		int userId = user.id;
 
-		String sqlStmt = "UPDATE user SET fname = ?, lname = ?, tel = ?, email = ?, role_id = ?, status = ?, locale = ?, operator_id = ?, bank_id = ?, modified_date = ?, modified_by = ?"
+		String sqlStmt = "UPDATE user SET fname = ?, lname = ?, tel = ?, email = ?, role_id = ?, status = ?, locale = ?, operator_id = ?, bank_id = ?, bonLevelAlert = ?, modified_date = ?, modified_by = ?"
 					+ " WHERE id = ?";
 
 		log.debug("SQL: " + sqlStmt);
@@ -551,7 +560,27 @@ public class UserDAL {
 		
 	}
 	
-	public static void updateLastLoggedIn(String email) {
+	public static void updateLastLoggedIn(int userId) {
 		// Implement this
+		log.info("UserDAL.get(email)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call UpdateUserLastLoggedIn(?) }";
+		log.info("SP Call: " + spCall);
+		
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userId);
+			spStmt.executeUpdate();
+			
+		} catch (SQLException ex) {
+			log.error(ex.getMessage());
+		}
+
 	}
 }

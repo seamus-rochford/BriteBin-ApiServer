@@ -112,6 +112,8 @@ public class JsonWebToken {
     
     public static String verify(String token) {
     	
+    	log.debug("VerifyToken - start");
+    	
         long nowMillis = System.currentTimeMillis();
         Date now = new Date();
         System.out.println("Now: " + now);

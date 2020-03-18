@@ -26,6 +26,9 @@ public class User {
 	public String homeTel;
 	public String workTel;
 
+	// System variables
+	public int binLevelAlert;
+	
 	public Instant lastLoggedIn;
 	public Instant lastActivity;
 

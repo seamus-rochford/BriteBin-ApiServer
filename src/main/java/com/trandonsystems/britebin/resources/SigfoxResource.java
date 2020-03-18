@@ -12,6 +12,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -20,14 +21,22 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.log4j.Logger;
 
 import com.trandonsystems.britebin.auth.BriteBinApiKeyNeeded;
+import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.model.SigfoxBody;
 import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
+import com.trandonsystems.britebin.services.UserServices;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 
 @Path("sigfox")
 public class SigfoxResource {
 
-	static Logger log = Logger.getLogger(UserResource.class);
+	static Logger log = Logger.getLogger(UserResources.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	UnitServices unitServices = new UnitServices();
@@ -43,7 +52,7 @@ public class SigfoxResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("postReading")
-//	@BriteBinApiKeyNeeded
+	@BriteBinApiKeyNeeded
 	public Response postReading(@QueryParam("id") String id, SigfoxBody sigfoxBody) {
 		try {
 			log.info("POST: postReading(sigfoxBody)");
@@ -55,7 +64,9 @@ public class SigfoxResource {
 			SigfoxServices sigfoxServices = new SigfoxServices();
 			sigfoxServices.saveData(id, sigfoxBody);
 	
-			return Response.status(Response.Status.OK).build();
+			return Response.status(Response.Status.OK)
+					.entity("Success")
+					.build();
 		}
 		catch(Exception ex) {
 			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
@@ -101,16 +112,18 @@ public class SigfoxResource {
 		return response;
 	}
 
+	// Example of using multi-parameters and multi-headers
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("exampleMultiParams")
 	@BriteBinApiKeyNeeded
-	public Response exampleMultiParams(@Context UriInfo ui) {
+	public Response exampleMultiParams(@Context UriInfo ui, @Context HttpHeaders hh) {
 		log.info("POST: exampleMultiParams(deviceId)");
 		
 		MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
-
+		MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+		
 		String deviceId = queryParams.getFirst("deviceId");
 		log.debug("DeviceId: " + deviceId);
 		
@@ -119,6 +132,15 @@ public class SigfoxResource {
 		
 		String source = queryParams.getFirst("source");
 		log.debug("Source: " + source);
+		
+		String apiKey = queryHeaders.getFirst("BRITEBIN_API_KEY");
+		log.debug("apiKey: " + apiKey);
+		
+		String contentType = queryHeaders.getFirst("Content-Type");
+		log.debug("contentType: " + contentType);
+		
+		String authorization = queryHeaders.getFirst("Authorization");
+		log.debug("authorization: " + authorization);
 		
 		JsonObject respObj = new JsonObject();
 		respObj.addProperty("Result", "exampleMultiParams worked");
@@ -129,6 +151,23 @@ public class SigfoxResource {
 		paramsObj.addProperty("Source", source);
 
 		respObj.add("Params", paramsObj);
+		
+		JsonObject headerObj = new JsonObject();
+		headerObj.addProperty("API_KEY", apiKey);
+		headerObj.addProperty("contentType", contentType);
+		headerObj.addProperty("Authorization", authorization);
+		respObj.add("Headers", headerObj);
+		
+		String jwtToken = authorization.substring(7);
+		log.debug("jwtToken: " + jwtToken);
+
+		int id = 5;
+		UserServices userServices = new UserServices();
+		if (userServices.verifyToken(id, jwtToken)) {
+			log.info("Valid token");
+		} else {
+			log.info("Invalid Token");
+		}
 		
 		Response response = Response.status(200).entity(respObj.toString()).build();
 		

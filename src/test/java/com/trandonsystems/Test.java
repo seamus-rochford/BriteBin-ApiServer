@@ -82,7 +82,7 @@ public class Test {
 		int errorCode = userServices.loginUser(user);
 		System.out.println(errorCode);
 		
-		user = userServices.getUser("tommy@pelmfg.com");
+		user = userServices.getUser(1, "tommy@pelmfg.com");
 		System.out.println("User: " + gson.toJson(user));		
 		
 		String jwtToken2 = JsonWebToken.createJWT(user);
@@ -128,8 +128,8 @@ public class Test {
 		UserServices us = new UserServices();
 		
 		User user = new User();
-		user.email = "tommy@pelmfg.com";
-		user.password = "tommy";
+		user.email = "seamus@trandonsystems.com";
+		user.password = "seamus";
 		
 		int result = us.loginUser(user);
 		log.info("Login result: " + result);
@@ -166,7 +166,7 @@ public class Test {
 	private static void testUnitReadings() {
 		
 		UnitServices us = new UnitServices();
-		List<UnitReading> list = us.getUnitReadings(1, "0861075021004552");
+		List<UnitReading> list = us.getUnitReadings(1, "0861075021004552", -1);
 		
 		log.info("Readings: ");
 		log.info(gson.toJson(list));
@@ -180,16 +180,21 @@ public class Test {
 	}
 	
 	private static void testSaveData() {
-		SigfoxBody data = new SigfoxBody();
+		SigfoxBody sigfoxData = new SigfoxBody();
 		
-		data.deviceId = "ABCDWXYZ";
-		data.rssi = "123";
-		data.snr = "11";
-		data.payload = "01284800554466345A760000";
+		sigfoxData.deviceID = "X1Y2Z3W4";
+		sigfoxData.rssi = "123";
+		sigfoxData.snr = "11";
+//		data.payload = "01284800554466345A760000";
+		sigfoxData.data = "01150000007e1b0000000000";
+		
+		String dataStr = gson.toJson(sigfoxData.data);
+		
+		log.info("Data: " + gson.toJson(sigfoxData.data));
 		
 		try {	
 			SigfoxServices ss = new SigfoxServices();
-			ss.saveData("ABCDWXYZ", data);
+			ss.saveData("X1Y2Z3W4", sigfoxData);
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
 		}

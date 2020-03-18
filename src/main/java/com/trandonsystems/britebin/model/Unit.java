@@ -11,10 +11,10 @@ public class Unit {
 	public String location;
 	public double latitude;
 	public double longitude;
-	public int tankTypeId;
-	public int useTankTypeLevel;
-	public int minLevel;
-	public int maxLevel;
+	public int binType;
+	public int binContentType;
+	public int useBinTypeLevel;
+	public int emptyLevel;
 	public Instant lastActivity;
 
 	public Instant insertDate;

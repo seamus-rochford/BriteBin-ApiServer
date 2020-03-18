@@ -2,9 +2,9 @@ package com.trandonsystems.britebin.model;
 
 public class SigfoxBody {
 	
-	public String deviceId;
+	public String deviceID;
 	public String snr;
 	public String rssi;
-	public String payload;
+	public String data;
 	
 }

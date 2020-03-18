@@ -19,23 +19,23 @@ public class SigfoxServices {
 
 	public void processData(long rawDataId, SigfoxBody sigfoxData) throws Exception {
 		log.info("processData - start");
+    	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
 
 		UnitReading reading = new UnitReading();
 
-		reading.serialNo = sigfoxData.deviceId;
+		reading.serialNo = sigfoxData.deviceID;
 		try {
-			reading.rssi = Integer.parseInt(sigfoxData.rssi);
-		} catch (NumberFormatException ex) {
-			throw new Exception("rssi - must be an integer");
+			reading.rssi = Double.parseDouble(sigfoxData.rssi);
+		} catch (Exception ex) {
+			reading.rssi = 0.0;
 		}
 		try {
-			reading.snr = Integer.parseInt(sigfoxData.snr);
-		} catch (NumberFormatException ex) {
-			throw new Exception("snr - must be an integer");
+			reading.snr = Double.parseDouble(sigfoxData.snr);
+		} catch (Exception ex) {
+			reading.snr = 0.0;
 		}
 		
-		// get the payload
-		byte[] data = Hex.hexStringToByteArray(sigfoxData.payload);
+		byte[] data = Hex.hexStringToByteArray(sigfoxData.data);
 		
 		reading.msgType = data[0] & 0xff;
 
@@ -63,7 +63,8 @@ public class SigfoxServices {
 
 			// bytes 10 & 11 not used at the moment
 			
-	        Unit unit = UnitDAL.getUnitBySerialNo(reading.serialNo);
+			// Pass userId = 1 (admin user) so they can have access to all units
+	        Unit unit = UnitDAL.getUnit(1, reading.serialNo);
 
 	        reading.readingDateTime = Instant.now();
 			
@@ -85,13 +86,15 @@ public class SigfoxServices {
 	public void saveData(String serialNo, SigfoxBody sigfoxData) throws Exception {
         try {
         	log.debug("saveData - start");
-
+        	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
+        	
 			// Save the raw data to the DB
 			long rawDataId = UnitDAL.saveRawData(gson.toJson(sigfoxData).getBytes("utf-8"));
-			if (!sigfoxData.deviceId.contentEquals(serialNo)) {
+			if (!sigfoxData.deviceID.contentEquals(serialNo)) {
 				throw new Exception("API parameter id does NOT match body deviceId");
 			}
 			
+        	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
 			processData(rawDataId, sigfoxData);
 							
         	log.debug("saveData - end");
