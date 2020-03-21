@@ -30,9 +30,9 @@ public class UnitDAL {
 		log.trace("Constructor");
 	}
 
-	public static Unit getUnit(int parentId, int id) {
+	public static Unit getUnit(int userFilterId, int id) {
 
-		log.info("UnitDAL.getUnit(parentId, id)");
+		log.info("UnitDAL.getUnit(userFilterId, id)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -47,7 +47,7 @@ public class UnitDAL {
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			spStmt.setInt(2, id);
 			ResultSet rs = spStmt.executeQuery();
 
@@ -103,9 +103,9 @@ public class UnitDAL {
 		return unit;
 	}
 
-	public static Unit getUnit(int parentId, String serialNo) {
+	public static Unit getUnit(int userFilterId, String serialNo) {
 
-		log.info("UnitDAL.getUnit(parentId, serialNo)");
+		log.info("UnitDAL.getUnit(userFilterId, serialNo)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -120,7 +120,7 @@ public class UnitDAL {
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			spStmt.setString(2, serialNo);
 			ResultSet rs = spStmt.executeQuery();
 
@@ -177,10 +177,10 @@ public class UnitDAL {
 		return unit;
 	}
 
-	public static List<Unit> getUnits(int parentId) {
+	public static List<Unit> getUnits(int userFilterId) {
 		// Return all units based on "parentId" hierarchy
 		
-		log.info("UnitDAL.getUnits");
+		log.info("UnitDAL.getUnits(userFilterId)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -195,7 +195,7 @@ public class UnitDAL {
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
@@ -332,9 +332,9 @@ public class UnitDAL {
 		return unitReadings;
 	}
 
-	public static List<UnitReading> getUnitReadings(int parentId, String serialNo, int limit) {
+	public static List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) {
 
-		log.info("UnitDAL.getUnitReadings(serialNo)");
+		log.info("UnitDAL.getUnitReadings(userFilterId, serialNo, limit)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -343,13 +343,13 @@ public class UnitDAL {
 
 		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
 
-		String spCall = "{ call GetUnitReadingsLimit(?, ?, ?) }";
+		String spCall = "{ call GetUnitReadings(?, ?, ?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			spStmt.setString(2, serialNo);
 			spStmt.setInt(3, limit);
 			ResultSet rs = spStmt.executeQuery();
@@ -359,6 +359,83 @@ public class UnitDAL {
 
 				unitReading.serialNo = serialNo;
 				unitReading.unitId = rs.getInt("unitId");
+				unitReading.msgType = rs.getInt("msgType");
+				unitReading.binLevel = rs.getInt("binLevel");
+				unitReading.binLevelBC = rs.getInt("BinLevelBC");
+				unitReading.noFlapOpening = rs.getInt("noFlapOpenings");
+				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
+				unitReading.temperature = rs.getInt("temperature");
+				unitReading.noCompactions = rs.getInt("noCompactions");
+				unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
+				
+				unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
+				unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
+				unitReading.overUnderTempLO = (rs.getInt("overUnderTempLO") == 1);
+				unitReading.binLocked = (rs.getInt("binLocked") == 1);
+				unitReading.binFull = (rs.getInt("binFull") == 1);
+				unitReading.binTilted = (rs.getInt("binTilted") == 1);
+				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
+				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
+
+				unitReading.rssi = rs.getInt("rssi");
+				unitReading.src = rs.getInt("src");
+				unitReading.snr = rs.getInt("snr");
+				unitReading.ber = rs.getInt("ber");
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
+				if (readingDateTime == null) {
+					unitReading.readingDateTime = null;
+				}
+				else {
+					java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
+					unitReading.readingDateTime = readingDateTimenInstant;
+				}
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp insertDateTime = rs.getTimestamp("insertDateTime");
+				if (insertDateTime == null) {
+					unitReading.insertDateTime = null;
+				}
+				else {
+					java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
+					unitReading.insertDateTime = insertDateTimeInstant;
+				}
+
+				unitReadings.add(unitReading);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return unitReadings;
+	}
+
+	public static List<UnitReading> getLatestReadings(int userFilterId) {
+
+		log.info("UnitDAL.getLatestReadings(userFilterId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
+
+		String spCall = "{ call GetLatestReadings(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				UnitReading unitReading = new UnitReading();
+
+				unitReading.unitId = rs.getInt("unitId");
+				unitReading.serialNo = rs.getString("serialNo");
 				unitReading.msgType = rs.getInt("msgType");
 				unitReading.binLevel = rs.getInt("binLevel");
 				unitReading.binLevelBC = rs.getInt("BinLevelBC");
@@ -501,15 +578,15 @@ public class UnitDAL {
 	
 	public static long saveMessage(int unitId, byte[] msg, int userId) throws SQLException{
 
-		System.out.println("UnitDAL.saveMessage(unitId, msg)");
+		log.info("UnitDAL.saveMessage(unitId, msg)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
-			System.out.println("ERROR: Can't create instance of driver" + ex.getMessage());
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
 		String spCall = "{ call SaveUnitMessage(?, ?, ?) }";
-		System.out.println("SP Call: " + spCall);
+		log.info("SP Call: " + spCall);
 
 		long id = 0;
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
@@ -525,7 +602,7 @@ public class UnitDAL {
 			}
 
 		} catch (SQLException ex) {
-			System.out.println("ERROR: " + ex.getMessage());
+			log.error("ERROR: " + ex.getMessage());
 			throw ex;
 		}
 		

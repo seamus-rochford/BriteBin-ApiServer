@@ -17,7 +17,7 @@ import com.trandonsystems.britebin.model.Role;
 
 public class LookupDAL {
 
-	static Logger log = Logger.getLogger(UnitDAL.class);
+	static Logger log = Logger.getLogger(LookupDAL.class);
 
 	public static List<BinType> getBinTypes(String locale) {
 		
@@ -44,8 +44,7 @@ public class LookupDAL {
 
 				binType.id = rs.getInt("id");
 				binType.name = rs.getString("name");
-				binType.minLevel = rs.getInt("minLevel");
-				binType.maxLevel = rs.getInt("maxLevel");
+				binType.emptyLevel = rs.getInt("emptyLevel");
 
 				binTypes.add(binType);
 			}
@@ -67,7 +66,7 @@ public class LookupDAL {
 
 		List<BinContentType> binContentTypes = new ArrayList<BinContentType>();
 
-		String spCall = "{ call GetBinContentTypes(?) }";
+		String spCall = "{ call GetContentTypes(?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);

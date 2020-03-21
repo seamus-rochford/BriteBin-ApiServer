@@ -42,6 +42,7 @@ public class UnitResources {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String test() {
+		log.debug("Unit resource is working!");
         return "Unit resource is working!";
     }
 
@@ -61,19 +62,21 @@ public class UnitResources {
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
 	
-			int userId = userServices.getUserIdFromJwtToken(jwtToken);
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 			
 			Unit unit = new Unit();
 			if (queryParams.containsKey("serialNo")) {
 				String serialNo = queryParams.getFirst("serialNo");
 				log.debug("serialNo: " + serialNo);
 				
-				unit = unitServices.getUnit(userId, serialNo);
+				unit = unitServices.getUnit(userFilterId, serialNo);
 			} else if (queryParams.containsKey("unitId")) {
 				int unitId = Integer.parseInt(queryParams.getFirst("unitId"));
 				log.debug("unitId: " + unitId);
 								
-				unit = unitServices.getUnit(userId, unitId);
+				unit = unitServices.getUnit(userFilterId, unitId);
+			} else {
+				unit = null;
 			}
 			
 			// Get a new token
@@ -114,10 +117,10 @@ public class UnitResources {
 			log.debug("jwtToken: " + jwtToken);
 	
 			// Get userId from JwtToken
-			int userId = userServices.getUserIdFromJwtToken(jwtToken);
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 			
 			// All units for this user
-			List<Unit>units = unitServices.getUnits(userId);
+			List<Unit>units = unitServices.getUnits(userFilterId);
 			
 			// Get a new token
 			String newToken = JsonWebToken.verify(jwtToken);
@@ -158,29 +161,31 @@ public class UnitResources {
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
 	
-			int userId = userServices.getUserIdFromJwtToken(jwtToken);
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 			
 			List<UnitReading>unitReadings = new ArrayList<UnitReading>();
 			
-			int limit = 0;
+			// Get limit parameter if it exists
+			int limit = -1;
 			if (queryParams.containsKey("limit")) {
 				try {
 					limit = Integer.parseInt(queryParams.getFirst("limit"));
 				}
 				catch(Exception ex) {
-					limit = 0;
+					limit = -1;
 				}
 			}
+			
 			if (queryParams.containsKey("serialNo")) {
 				String serialNo = queryParams.getFirst("serialNo");
 				log.debug("serialNo: " + serialNo);
 				
-				unitReadings = unitServices.getUnitReadings(userId, serialNo, limit);
+				unitReadings = unitServices.getUnitReadings(userFilterId, serialNo, limit);
 			} else if (queryParams.containsKey("unitId")) {
 				int unitId = Integer.parseInt(queryParams.getFirst("unitId"));
 				log.debug("unitId: " + unitId);
 								
-				unitReadings = unitServices.getUnitReadings(userId, unitId, limit);
+				unitReadings = unitServices.getUnitReadings(userFilterId, unitId, limit);
 			}
 			
 			// Get a new token
@@ -204,7 +209,48 @@ public class UnitResources {
 		}	
 	}
 	
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getLatestReadings")
+	@JWTTokenNeeded
+	public Response getLatestReadings(@Context UriInfo ui, @Context HttpHeaders hh) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+						
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
 	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			
+			List<UnitReading>latestReadings = unitServices.getLatestReadings(userFilterId);
+			
+			// Get a new token
+			String newToken = JsonWebToken.verify(jwtToken);		
+			
+			String json = Json.createObjectBuilder()
+					.add("token", newToken)
+					.add("unit",  gson.toJson(latestReadings))
+					.build()
+					.toString();
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(json)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// These ones were created for engineers testing units
 	@GET

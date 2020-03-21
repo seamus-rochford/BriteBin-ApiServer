@@ -25,6 +25,7 @@ import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.Role;
 import com.trandonsystems.britebin.services.LookupServices;
+import com.trandonsystems.britebin.services.UserServices;
 
 @Path("lookup")
 public class LookupResources {
@@ -32,7 +33,9 @@ public class LookupResources {
 	static Logger log = Logger.getLogger(UserResources.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	
-
+	LookupServices lookupServices = new LookupServices();
+	UserServices userServices = new UserServices();
+	
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String test() {
@@ -47,7 +50,6 @@ public class LookupResources {
 	public Response getBinTypes(@Context UriInfo ui, @Context HttpHeaders hh) {
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
 			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
@@ -55,27 +57,14 @@ public class LookupResources {
 	
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
+			log.debug("locale: " + locale);
 			
-			List<BinType> binTypes = new ArrayList<BinType>();
-			if (queryParams.containsKey("locale")) {
-				String locale = queryParams.getFirst("locale");
-				log.debug("locale: " + locale);
-				
-				LookupServices lookupServices = new LookupServices();
-				binTypes = lookupServices.getBinTypes(locale);
-			} 
-			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("binTypes", gson.toJson(binTypes))
-					.build()
-					.toString();
-			
+			List<BinType> binTypes = lookupServices.getBinTypes(locale);
+						
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(gson.toJson(binTypes))
 				.build();
 		
 		} catch (Exception ex) {
@@ -93,7 +82,6 @@ public class LookupResources {
 	public Response getBinContentTypes(@Context UriInfo ui, @Context HttpHeaders hh) {
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
 			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
@@ -101,27 +89,13 @@ public class LookupResources {
 	
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
-			
-			List<BinContentType> binContentTypes = new ArrayList<BinContentType>();
-			if (queryParams.containsKey("locale")) {
-				String locale = queryParams.getFirst("locale");
-				log.debug("locale: " + locale);
-				
-				LookupServices lookupServices = new LookupServices();
-				binContentTypes = lookupServices.getBinContentTypes(locale);
-			} 
-			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("binContentTypes", gson.toJson(binContentTypes))
-					.build()
-					.toString();
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
+									
+			List<BinContentType> binContentTypes = lookupServices.getBinContentTypes(locale);
 			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(gson.toJson(binContentTypes))
 				.build();
 		
 		} catch (Exception ex) {
@@ -139,7 +113,6 @@ public class LookupResources {
 	public Response getCountries(@Context UriInfo ui, @Context HttpHeaders hh) {
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
 			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
@@ -147,27 +120,13 @@ public class LookupResources {
 	
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
 			
-			List<Country> countries = new ArrayList<Country>();
-			if (queryParams.containsKey("locale")) {
-				String locale = queryParams.getFirst("locale");
-				log.debug("locale: " + locale);
-				
-				LookupServices lookupServices = new LookupServices();
-				countries = lookupServices.getCountries(locale);
-			} 
-			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("countries", gson.toJson(countries))
-					.build()
-					.toString();
+			List<Country> countries = lookupServices.getCountries(locale);
 			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(gson.toJson(countries))
 				.build();
 		
 		} catch (Exception ex) {
@@ -185,7 +144,6 @@ public class LookupResources {
 	public Response getRoles(@Context UriInfo ui, @Context HttpHeaders hh) {
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
 			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
@@ -193,27 +151,13 @@ public class LookupResources {
 	
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
 			
-			List<Role> roles = new ArrayList<Role>();
-			if (queryParams.containsKey("locale")) {
-				String locale = queryParams.getFirst("locale");
-				log.debug("locale: " + locale);
-				
-				LookupServices lookupServices = new LookupServices();
-				roles = lookupServices.getRoles(locale);
-			} 
-			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("roles", gson.toJson(roles))
-					.build()
-					.toString();
+			List<Role> roles = lookupServices.getRoles(locale);
 			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(gson.toJson(roles))
 				.build();
 		
 		} catch (Exception ex) {

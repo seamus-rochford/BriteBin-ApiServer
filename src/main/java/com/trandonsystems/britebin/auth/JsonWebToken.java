@@ -89,6 +89,7 @@ public class JsonWebToken {
                 .claim("email", user.email)
                 .claim("parent", String.valueOf(user.parentId))
                 .claim("status", String.valueOf(user.status))
+                .claim("locale", user.locale)
                 .signWith(signatureAlgorithm, signingKey);
       
         // Add default timeout to JWT
@@ -133,6 +134,7 @@ public class JsonWebToken {
                 .claim("email", claims.get("email"))
                 .claim("parent", claims.get("parent"))
                 .claim("status", claims.get("status"))
+                .claim("locale", claims.get("locale"))
                 .signWith(signatureAlgorithm, signingKey);
       
         // Add default timeout to JWT

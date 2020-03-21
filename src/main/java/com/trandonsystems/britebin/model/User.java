@@ -4,16 +4,22 @@ import java.time.Instant;
 
 public class User {
 
-	public static int ROLE_INACTIVE = -1;  // Locked out
-	public static int ROLE_REGISTERED = 0;
-	public static int ROLE_ACTIVE = 1;
+	public static int USER_STATUS_INACTIVE = -1;  // Locked out
+	public static int USER_STATUS_REGISTERED = 0;
+	public static int USER_STATUS_ACTIVE = 1;
 
+	public static int USER_ROLE_ADMIN = 0;
+	public static int USER_ROLE_MUNICIPAL = 1;
+	public static int USER_ROLE_SUB_MUNICIPAL = 2;
+	public static int USER_ROLE_CUSTOMER = 3;
+	public static int USER_ROLE_DRIVER = 4;
+	
 	public int id;
 	public String email;
 	public String password;
 	public int role;  
 	public int parentId;  
-	public int status;  // 0 - registered, 1 - email verified, 2 - verified
+	public int status;  // -1 = inactive, 0 - registered, 1 -  active
 	public String locale;
 	public String name;
 	public String addr1;
@@ -37,4 +43,6 @@ public class User {
 	public Instant modifiedDate;
 	public int modifiedBy;
 	
+	public String newPassword;
+	public String verifyPassword;
 }

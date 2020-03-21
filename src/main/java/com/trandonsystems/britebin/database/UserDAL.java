@@ -26,7 +26,7 @@ public class UserDAL {
 	public UserDAL() {
 		log.trace("Constructor");
 
-		// Configure password Encrypter
+		// Configure password Encrypted
 		passwordEncryptor.setAlgorithm("SHA-1");
 		passwordEncryptor.setPlainDigest(true);
 	}
@@ -119,9 +119,9 @@ public class UserDAL {
 		return user;
 	}
 
-	public static User get(int parentId, int id) {
+	public static User get(int userFilterId, int id) {
 
-		log.info("UserDAL.get(id)");
+		log.info("UserDAL.get(userFilterId, id)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -136,7 +136,7 @@ public class UserDAL {
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			spStmt.setInt(2, id);
 			ResultSet rs = spStmt.executeQuery();
 
@@ -212,9 +212,9 @@ public class UserDAL {
 		return user;
 	}
 
-	public static User get(int parentId, String email) {
+	public static User get(int userFilterId, String email) {
 
-		log.info("UserDAL.get(email)");
+		log.info("UserDAL.get(userFilterId, email)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -229,7 +229,7 @@ public class UserDAL {
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			spStmt.setString(2, email);
 			ResultSet rs = spStmt.executeQuery();
 
@@ -305,9 +305,9 @@ public class UserDAL {
 		return user;
 	}
 
-	public static List<User> getUsers(int parentId) {
+	public static List<User> getUsers(int userFilterId) {
 
-		log.info("UserDAL.getUsers");
+		log.info("UserDAL.getUsers(userFilterId)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -322,7 +322,7 @@ public class UserDAL {
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setInt(1, parentId);
+			spStmt.setInt(1, userFilterId);
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
@@ -418,9 +418,9 @@ public class UserDAL {
 	
 	public static boolean passwordMatch(String inputPassword, String encryptedPassword) {
 		log.info("UserDAL.passwordMatch");
-		log.info("inputPassword: " + inputPassword);
-		log.info("inputPassword.md5: " + Util.MD5(inputPassword));
-		log.info("DB Password: " + encryptedPassword);
+		log.debug("inputPassword: " + inputPassword);
+		log.debug("inputPassword.md5: " + Util.MD5(inputPassword));
+		log.debug("DB Password: " + encryptedPassword);
 		return (Util.MD5(inputPassword).equals(encryptedPassword));
 	}
 	
@@ -582,5 +582,94 @@ public class UserDAL {
 			log.error(ex.getMessage());
 		}
 
+	}
+
+	public static void resetPassword(User user) throws SQLException {
+		
+		log.info("UserDAL.resetPassword(user)");
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		String spCall = "{ call ResetPassword(?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, user.id);
+			spStmt.setString(2, encryptPassword(user.newPassword));
+			spStmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+		
+		return ;
+		
+	}
+
+	public static void setUserStatus(int userId, int userStatus, int actionUserId) throws SQLException {
+		
+		log.info("UserDAL.setUserStatus(userid, userStatys, actionUser)");
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		String spCall = "{ call SetUserStatusById(?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userId);
+			spStmt.setInt(2, userStatus);
+			spStmt.setInt(3, actionUserId);
+			spStmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+		
+		return ;
+		
+	}
+
+	public static void setUserStatus(String email, int userStatus, int actionUserId) throws SQLException {
+		
+		log.info("UserDAL.setUserStatus(email, userStatys, actionUser)");
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		String spCall = "{ call SetUserStatus(?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, email);
+			spStmt.setInt(2, userStatus);
+			spStmt.setInt(3, actionUserId);
+			spStmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+		
+		return ;
+		
 	}
 }

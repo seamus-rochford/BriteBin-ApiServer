@@ -166,7 +166,7 @@ public class Test {
 	private static void testUnitReadings() {
 		
 		UnitServices us = new UnitServices();
-		List<UnitReading> list = us.getUnitReadings(1, "0861075021004552", -1);
+		List<UnitReading> list = us.getUnitReadings(1, "0861075021004551", -1);
 		
 		log.info("Readings: ");
 		log.info(gson.toJson(list));
@@ -204,7 +204,7 @@ public class Test {
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		testSaveData();
+//		testSaveData();
 		
 //		testLogging();
 		
@@ -218,7 +218,7 @@ public class Test {
 	
 //		testUsers();
 		
-//		testUnitReadings();
+		testUnitReadings();
 
 	}
 

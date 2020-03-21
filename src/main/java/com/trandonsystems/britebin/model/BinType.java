@@ -4,7 +4,6 @@ public class BinType {
 
 	public int id;
 	public String name;
-	public int minLevel;
-	public int maxLevel;
+	public int emptyLevel;
 	
 }

@@ -1,5 +1,6 @@
 package com.trandonsystems.britebin.services;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -21,26 +22,25 @@ public class UserServices {
 	static Logger log = Logger.getLogger(UserServices.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	public List<User> getUsers(int parentId) {
-		log.info("UserService.getUsers(parentId)");
-		return UserDAL.getUsers(parentId);
+	public List<User> getUsers(int userFilterId) {
+		log.info("UserService.getUsers(userFilterId)");
+		return UserDAL.getUsers(userFilterId);
 	}
 
-	public User getUser(int parentId, int id) {
-		log.info("UserService.getUser(int id)");
-		return UserDAL.get(parentId, id);
+	public User getUser(int userFilterId, int id) {
+		log.info("UserService.getUser(userFilterId, id)");
+		return UserDAL.get(userFilterId, id);
 	}
 
-	public User getUser(int parentId, String email) {
-		log.info("UserService.getUser(parentId, email)");
-		return UserDAL.get(parentId, email);
+	public User getUser(int userFilterId, String email) {
+		log.info("UserService.getUser(userFilterId, email)");
+		return UserDAL.get(userFilterId, email);
 	}
 
 	public int loginUser(User user) {
 		log.info("UserService.loginUser");
 		
 		try {
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			log.debug(gson.toJson(user));
 			
 			User dbUser = UserDAL.get(1, user.email);
@@ -103,6 +103,25 @@ public class UserServices {
 		return 0;
 	}
 	
+	public void resetPassword(User user) throws SQLException {
+		log.info("UserService.loginUser");
+	
+		// Reset password
+		UserDAL.resetPassword(user);
+	}
+	
+	public void setUserStatus(int userId, int userStatus, int actionUserId) throws SQLException {
+		log.info("UserService.setUserStatus");
+	
+		UserDAL.setUserStatus(userId, userStatus, actionUserId);
+	}
+	
+	public void setUserStatus(String email, int userStatus, int actionUserId) throws SQLException {
+		log.info("UserService.setUserStatus");
+	
+		UserDAL.setUserStatus(email, userStatus, actionUserId);
+	}
+	
 	public boolean verifyToken(int id, String jwtToken) {
 		try {
 			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);
@@ -143,23 +162,23 @@ public class UserServices {
 		return false;
 	}
 	
-	public int getUserIdFromJwtToken(String jwtToken) {
+	public int getUserFilterIdFromJwtToken(String jwtToken) {
 		try {
 			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);
-			
-	        log.debug("Id: " + jwtClaims.getId());
-	        log.debug("Sub: " + jwtClaims.getSubject());
-	        log.debug("Iss: " + jwtClaims.getIssuer());
-	        log.debug("At: " + jwtClaims.getIssuedAt());
-	        log.debug("Exp: " + jwtClaims.getExpiration());
-	        log.debug("Name: " + jwtClaims.get("name"));
-	        log.debug("role: " + jwtClaims.get("role"));
-	        log.debug("email: " + jwtClaims.get("email"));
-	        log.debug("parent: " + jwtClaims.get("parent"));
-	        log.debug("Status: " + jwtClaims.get("status"));
-	        
+
 	        log.debug("jwtClaims: " + jwtClaims);
 		
+	        log.debug("userId: " + jwtClaims.getId());
+	        
+	        int role = Integer.parseInt(jwtClaims.get("role").toString());
+	        log.debug("role: " + jwtClaims.get("role"));
+	        // If role is a driver use his parentId as user filter
+	        if (role == User.USER_ROLE_DRIVER) {
+		        log.debug("UserFilterId: " + jwtClaims.get("parent"));
+	        	return Integer.parseInt(jwtClaims.get("parent").toString());
+	        }
+	        
+	        log.debug("UserFilterId: " + jwtClaims.getId());
 			return Integer.parseInt(jwtClaims.getId());
 		}
 		catch (ExpiredJwtException e) {
@@ -179,5 +198,33 @@ public class UserServices {
 		}
 
 		return 0;
+	}
+
+	public String getUserLocaleFromJwtToken(String jwtToken) {
+		try {
+			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);
+				        
+	        log.debug("jwtClaims: " + jwtClaims);
+	        log.debug("Locale: " + jwtClaims.get("locale"));
+	        
+			return jwtClaims.get("locale").toString();
+		}
+		catch (ExpiredJwtException e) {
+			log.error("Token expired exception");
+		}
+		catch (UnsupportedJwtException e) {
+			log.error("Token unsupported exception");
+		}
+		catch (MalformedJwtException e) {
+			log.error("Token malformed exception");
+		}
+		catch (SignatureException e) {
+			log.error("Token signature exception");
+		}
+		catch (IllegalArgumentException e) {
+			log.error("Token illegal exception");
+		}
+
+		return "";
 	}
 }
