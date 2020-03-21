@@ -36,11 +36,10 @@ public class JsonWebToken {
     
     private static Key getSigningKey() {
     	
-        //We will sign our JWT with our ApiKey secret
+        // Sign our JWT token with our ApiKey secret
     	log.info("getSigningKey");
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(SECRET_KEY);
         
-//        byte[] apiKeySecretBytes = SECRET_KEY.getBytes();
     	log.info("getSigningKey - apiKeySecretBytes created");
         return new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
     }
@@ -113,7 +112,7 @@ public class JsonWebToken {
     
     public static String verify(String token) {
     	
-    	log.debug("VerifyToken - start");
+    	log.debug("verify - start");
     	
         long nowMillis = System.currentTimeMillis();
         Date now = new Date();

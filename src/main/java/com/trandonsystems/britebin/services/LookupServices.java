@@ -10,6 +10,7 @@ import com.trandonsystems.britebin.database.LookupDAL;
 import com.trandonsystems.britebin.model.BinContentType;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
 
 public class LookupServices {
@@ -31,6 +32,11 @@ public class LookupServices {
 	public List<Country> getCountries(String locale) {
 		log.info("LookupServices.getCountries(locale)");
 		return LookupDAL.getCountries(locale);
+	}
+	
+	public List<Locale> getLocales(String locale) {
+		log.info("LookupServices.getLocales(locale)");
+		return LookupDAL.getLocales(locale);
 	}
 	
 	public List<Role> getRoles(String locale) {

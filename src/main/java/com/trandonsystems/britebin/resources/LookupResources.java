@@ -23,6 +23,7 @@ import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.model.BinContentType;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
 import com.trandonsystems.britebin.services.LookupServices;
 import com.trandonsystems.britebin.services.UserServices;
@@ -47,10 +48,10 @@ public class LookupResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getBinTypes")
 	@JWTTokenNeeded
-	public Response getBinTypes(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getBinTypes(@Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -79,10 +80,10 @@ public class LookupResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getBinContentTypes")
 	@JWTTokenNeeded
-	public Response getBinContentTypes(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getBinContentTypes(@Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -110,10 +111,10 @@ public class LookupResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getCountries")
 	@JWTTokenNeeded
-	public Response getCountries(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getCountries(@Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -139,12 +140,44 @@ public class LookupResources {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("getRoles")
+	@Path("getLocales")
 	@JWTTokenNeeded
-	public Response getRoles(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getLocales(@Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
+			
+			List<Locale> locales = lookupServices.getLocales(locale);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(gson.toJson(locales))
+				.build();
+		
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getRoles")
+	@JWTTokenNeeded
+	public Response getRoles(@Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);

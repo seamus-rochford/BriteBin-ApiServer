@@ -50,11 +50,11 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUnit")
 	@JWTTokenNeeded
-	public Response getUnit(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getUnit(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 						
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -105,10 +105,10 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUnits")
 	@JWTTokenNeeded
-	public Response getUnits(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getUnits(@Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -149,11 +149,11 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUnitReadings")
 	@JWTTokenNeeded
-	public Response getUnitReadings(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getUnitReadings(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 						
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -214,10 +214,10 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getLatestReadings")
 	@JWTTokenNeeded
-	public Response getLatestReadings(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getLatestReadings(@Context HttpHeaders httpHeaders) {
 		
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
 						
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);

@@ -126,16 +126,16 @@ public class UserServices {
 		try {
 			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);
 			
-	        log.debug("Id: " + jwtClaims.getId());
-	        log.debug("Sub: " + jwtClaims.getSubject());
-	        log.debug("Iss: " + jwtClaims.getIssuer());
-	        log.debug("At: " + jwtClaims.getIssuedAt());
-	        log.debug("Exp: " + jwtClaims.getExpiration());
-	        log.debug("Name: " + jwtClaims.get("name"));
-	        log.debug("role: " + jwtClaims.get("role"));
-	        log.debug("email: " + jwtClaims.get("email"));
-	        log.debug("parent: " + jwtClaims.get("parent"));
-	        log.debug("Status: " + jwtClaims.get("status"));
+//	        log.debug("Id: " + jwtClaims.getId());
+//	        log.debug("Sub: " + jwtClaims.getSubject());
+//	        log.debug("Iss: " + jwtClaims.getIssuer());
+//	        log.debug("At: " + jwtClaims.getIssuedAt());
+//	        log.debug("Exp: " + jwtClaims.getExpiration());
+//	        log.debug("Name: " + jwtClaims.get("name"));
+//	        log.debug("role: " + jwtClaims.get("role"));
+//	        log.debug("email: " + jwtClaims.get("email"));
+//	        log.debug("parent: " + jwtClaims.get("parent"));
+//	        log.debug("Status: " + jwtClaims.get("status"));
 	        
 	        log.debug("jwtClaims: " + jwtClaims);
 		

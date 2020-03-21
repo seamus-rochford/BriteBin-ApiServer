@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import com.trandonsystems.britebin.model.BinContentType;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
 
 public class LookupDAL {
@@ -126,6 +127,42 @@ public class LookupDAL {
 		return countries;
 	}
 
+	public static List<Locale> getLocales(String translateLocale) {
+		
+		log.info("LookupDAL.getLocales");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<Locale> locales = new ArrayList<Locale>();
+
+		String spCall = "{ call GetLocales(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, translateLocale);
+			ResultSet rs = spStmt.executeQuery();
+			
+			while (rs.next()) {
+				Locale locale = new Locale();
+
+				locale.abbr = rs.getString("abbr");
+				locale.name = rs.getString("Name");
+
+				locales.add(locale);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return locales;
+	}
+
+	
 	public static List<Role> getRoles(String locale) {
 		
 		log.info("LookupDAL.getRoles");

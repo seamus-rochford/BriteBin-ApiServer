@@ -5,6 +5,7 @@ import java.util.List;
 import javax.json.Json;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -43,12 +44,12 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUser")
 	@JWTTokenNeeded
-	public Response getUser(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getUser(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		log.debug("getUser");
 		
 		try {
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -99,10 +100,10 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUsers")
 	@JWTTokenNeeded
-	public Response getUsers(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response getUsers(@Context HttpHeaders httpHeader) {
 		log.debug("getUsers");
 		try {
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -135,7 +136,7 @@ public class UserResources {
 					.build();
 		}
 	}
-		
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -168,12 +169,14 @@ public class UserResources {
 											.add("user", gson.toJson(user))
 											.build()
 											.toString();
+					
 					return Response.status(Response.Status.OK) // 200 
 							.entity(json)
 							.build();
+					
 				} else if (user.status == User.USER_STATUS_REGISTERED) {
 					return Response.status(Response.Status.UNAUTHORIZED) // 401 
-							.entity("400 - User registered but must change password")
+							.entity("401 - User registered but must change password")
 							.build();
 				}
 				// User is inactive
@@ -193,13 +196,55 @@ public class UserResources {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
+	@Path("verifyToken")
+	@JWTTokenNeeded
+	public Response verifyToken(@Context HttpHeaders httpHeader) {
+		try {
+			log.info("POST: verifyToken");
+
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			if (authorization == null) {
+				return Response.status(Response.Status.UNAUTHORIZED)
+								.entity("Authorization token missing")
+								.build();
+			}
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("Token verified");
+				
+			// Get new jwtToken
+			String newToken = JsonWebToken.verify(jwtToken);
+			String json = Json.createObjectBuilder()
+					.add("token", newToken)
+					.build()
+					.toString();
+			
+			return Response.status(Response.Status.OK) // 200 
+					.entity(json)
+					.build();
+
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();
+		}
+	}
+
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("resetPassword")
 	public Response resetPassowrd(User user) {
 		try {
 			log.info("POST: Login user");
 			log.info("User: " + user.email);
 			
-			// Save the password because it will be rest when we call loginUser
+			// Save the new password because it will be lost when we call loginUser
 			String newPassword = user.newPassword;
 			
 			int errorCode = userServices.loginUser(user);
@@ -256,12 +301,12 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("deactivateUser")
 	@JWTTokenNeeded
-	public Response deactivateUser(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response deactivateUser(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		try {
 			log.info("deactivateUser(user)");
 			
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -309,12 +354,12 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("activateUser")
 	@JWTTokenNeeded
-	public Response activateUser(@Context UriInfo ui, @Context HttpHeaders hh) {
+	public Response activateUser(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		try {
 			log.info("activateUser(user)");
 			
-			MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
-			MultivaluedMap<String, String> queryHeaders = hh.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
