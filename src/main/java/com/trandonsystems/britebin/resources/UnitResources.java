@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
-import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.services.Hex;
@@ -79,17 +78,8 @@ public class UnitResources {
 				unit = null;
 			}
 			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("unit",  gson.toJson(unit))
-					.build()
-					.toString();
-			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(unit)
 				.build();
 			
 		} catch (Exception ex) {
@@ -122,18 +112,8 @@ public class UnitResources {
 			// All units for this user
 			List<Unit>units = unitServices.getUnits(userFilterId);
 			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);
-			
-			String unitsJson = gson.toJson(units);
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("units", unitsJson)
-					.build()
-					.toString();
-			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(units)
 				.build();
 			
 		} catch (Exception ex) {
@@ -144,6 +124,49 @@ public class UnitResources {
 		}	
 	}
     
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("save")
+	@JWTTokenNeeded
+	public Response save(@Context HttpHeaders httpHeader, Unit unit) {
+		try {
+			log.info("POST: save unit");
+			log.info("User: " + gson.toJson(unit));
+			
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+
+			unit = unitServices.save(unit, actionUserId);
+			log.info("Saved user: " + gson.toJson(unit));
+
+
+			String json = Json.createObjectBuilder()
+									.add("user", gson.toJson(unit))
+									.build()
+									.toString();
+			
+			return Response.status(Response.Status.OK) // 200 
+					.entity(json)
+					.build();
+		
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();
+		}
+	}
+
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -176,29 +199,73 @@ public class UnitResources {
 				}
 			}
 			
-			if (queryParams.containsKey("serialNo")) {
-				String serialNo = queryParams.getFirst("serialNo");
-				log.debug("serialNo: " + serialNo);
-				
-				unitReadings = unitServices.getUnitReadings(userFilterId, serialNo, limit);
-			} else if (queryParams.containsKey("unitId")) {
+			if (queryParams.containsKey("unitId")) {
 				int unitId = Integer.parseInt(queryParams.getFirst("unitId"));
 				log.debug("unitId: " + unitId);
 								
 				unitReadings = unitServices.getUnitReadings(userFilterId, unitId, limit);
-			}
-			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("unit",  gson.toJson(unitReadings))
-					.build()
-					.toString();
+			} else if (queryParams.containsKey("serialNo")) {
+				String serialNo = queryParams.getFirst("serialNo");
+				log.debug("serialNo: " + serialNo);
+				
+				unitReadings = unitServices.getUnitReadings(userFilterId, serialNo, limit);
+			} 
 			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(unitReadings)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("pullReadings")
+	@JWTTokenNeeded
+	public Response pullReadings(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		// this recovers readings in the database that were recorded before the unit was setup
+		// And then returns all readings for the unit
+		try {
+			log.info("UnitResources.pullReadings");
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+						
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			
+			List<UnitReading>unitReadings = new ArrayList<UnitReading>();
+	
+			int unitId = 0;
+			if (queryParams.containsKey("unitId")) {
+				unitId = Integer.parseInt(queryParams.getFirst("unitId"));
+				log.debug("unitId: " + unitId);
+			} else {
+				throw new Exception("unitId required for <pullReadings>");
+			}
+			
+			String serialNo = "";
+			if (queryParams.containsKey("serialNo")) {
+				serialNo = queryParams.getFirst("serialNo");
+				log.debug("serialNo: " + serialNo);
+			} else {
+				throw new Exception("serialNo required for <pullReadings>");
+			}
+			
+			unitReadings = unitServices.pullReadings(userFilterId, unitId, serialNo);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(unitReadings)
 				.build();
 			
 		} catch (Exception ex) {
@@ -229,17 +296,8 @@ public class UnitResources {
 			
 			List<UnitReading>latestReadings = unitServices.getLatestReadings(userFilterId);
 			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("unit",  gson.toJson(latestReadings))
-					.build()
-					.toString();
-			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(latestReadings)
 				.build();
 			
 		} catch (Exception ex) {
@@ -258,7 +316,7 @@ public class UnitResources {
 	@Path("getUnitReadings/{serialNo}")
 	public List<UnitReading> getUnitReadings(@PathParam("serialNo") String serialNo) {
 		log.info("getUnitReadings(serialNo)");
-		return unitServices.getUnitReadings(1, serialNo, -1);
+		return unitServices.getUnitReadingsTest(serialNo, -1);
 	}
 
 	@GET
@@ -266,7 +324,7 @@ public class UnitResources {
 	@Path("getUnitReadings/{serialNo}/limit/{limit}")
 	public List<UnitReading> getUnitReadings(@PathParam("serialNo") String serialNo, @PathParam("limit") int limit) {
 		log.info("getUnitReadings(serialNo, limit)");
-		return unitServices.getUnitReadings(1, serialNo, limit);
+		return unitServices.getUnitReadingsTest(serialNo, limit);
 	}
 
 

@@ -21,17 +21,11 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.log4j.Logger;
 
 import com.trandonsystems.britebin.auth.BriteBinApiKeyNeeded;
-import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.model.SigfoxBody;
 import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
 
 @Path("sigfox")
 public class SigfoxResource {

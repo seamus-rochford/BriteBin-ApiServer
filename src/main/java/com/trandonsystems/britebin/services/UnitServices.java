@@ -28,6 +28,12 @@ public class UnitServices {
 		return UnitDAL.getUnits(userFilterId);
 	}
 
+	public Unit save(Unit unit, int actionUserId) throws SQLException {
+		log.info("UnitService.save");
+		
+		return UnitDAL.save(unit, actionUserId);
+	}
+	
 	public List<UnitReading> getUnitReadings(int userFilterId, int id, int limit) {
 		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
 		return UnitDAL.getUnitReadings(userFilterId, id, limit);
@@ -36,6 +42,17 @@ public class UnitServices {
 	public List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) {
 		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
 		return UnitDAL.getUnitReadings(userFilterId, serialNo, limit);
+	}
+
+	public List<UnitReading> pullReadings(int userFilterId, int unitId, String serialNo) throws SQLException {
+		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
+		return UnitDAL.pullReadings(userFilterId, unitId, serialNo);
+	}
+
+	// for engineering testing only
+	public List<UnitReading> getUnitReadingsTest(String serialNo, int limit) {
+		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
+		return UnitDAL.getUnitReadingsTest(serialNo, limit);
 	}
 
 	public List<UnitReading> getLatestReadings(int userFilterId) {

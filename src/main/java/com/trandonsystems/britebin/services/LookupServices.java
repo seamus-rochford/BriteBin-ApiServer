@@ -7,11 +7,13 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.LookupDAL;
-import com.trandonsystems.britebin.model.BinContentType;
+import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Status;
 
 public class LookupServices {
 
@@ -24,9 +26,14 @@ public class LookupServices {
 		return LookupDAL.getBinTypes(locale);
 	}
 	
-	public List<BinContentType> getBinContentTypes(String locale) {
-		log.info("LookupServices.getBinContentTypes(locale)");
-		return LookupDAL.getBinContentTypes(locale);
+	public List<ContentType> getContentTypes(String locale) {
+		log.info("LookupServices.getContentTypes(locale)");
+		return LookupDAL.getContentTypes(locale);
+	}
+	
+	public List<DeviceType> getDeviceTypes(String locale) {
+		log.info("LookupServices.getDeviceTypes(locale)");
+		return LookupDAL.getDeviceTypes(locale);
 	}
 	
 	public List<Country> getCountries(String locale) {
@@ -42,6 +49,11 @@ public class LookupServices {
 	public List<Role> getRoles(String locale) {
 		log.info("LookupServices.getRoles(locale)");
 		return LookupDAL.getRoles(locale);
+	}
+	
+	public List<Status> getStatus(String locale) {
+		log.info("LookupServices.getRoles(locale)");
+		return LookupDAL.getStatus(locale);
 	}
 	
 }

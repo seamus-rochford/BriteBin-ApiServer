@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JsonWebToken;
 import com.trandonsystems.britebin.database.UserDAL;
+import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.User;
 
 import io.jsonwebtoken.Claims;
@@ -207,7 +208,8 @@ public class UserServices {
 	        log.debug("jwtClaims: " + jwtClaims);
 	        log.debug("Locale: " + jwtClaims.get("locale"));
 	        
-			return jwtClaims.get("locale").toString();
+	        Locale locale = gson.fromJson(gson.toJson(jwtClaims.get("locale")), Locale.class);
+			return locale.abbr;
 		}
 		catch (ExpiredJwtException e) {
 			log.error("Token expired exception");
@@ -226,5 +228,11 @@ public class UserServices {
 		}
 
 		return "";
+	}
+
+	public User save(User user, int actionUserId) throws SQLException {
+		log.info("UserService.save");
+		
+		return UserDAL.save(user, actionUserId);
 	}
 }

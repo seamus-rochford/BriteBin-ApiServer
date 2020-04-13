@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.time.temporal.*;
 import java.util.ArrayList;
@@ -16,6 +17,10 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.jasypt.util.password.*;
 
+import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.Locale;
+import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Status;
 import com.trandonsystems.britebin.model.User;
 
 public class UserDAL {
@@ -53,21 +58,44 @@ public class UserDAL {
 			if (rs.next()) {
 				user.email = rs.getString("email");
 				user.password = rs.getString("password");
-				user.role = rs.getInt("role");
+				
+				Role role = new Role();
+				role.id = rs.getInt("role");
+				role.name = rs.getString("ref_roles.name");
+				user.role = role;
+				
 				user.parentId = rs.getInt("parentId");
-				user.status = rs.getInt("status");
-				user.locale = rs.getString("locale");
+				user.parentName = rs.getString("parentUser.name");
+				
+				Status status = new Status();
+				status.id = rs.getInt("status");
+				status.name = rs.getString("ref_status.name");
+				user.status = status;
+				
+				Locale locale = new Locale();
+				locale.abbr = rs.getString("locale");
+				locale.name = rs.getString("ref_locale.name");
+				user.locale = locale;
+				
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
 				user.city = rs.getString("city");
 				user.county = rs.getString("county");
 				user.postcode = rs.getString("postcode");
-				user.country = rs.getInt("country");
+				
+				Country country = new Country();
+				country.id = rs.getInt("country");
+				country.name = rs.getString("ref_country.name");
+				country.abbr = rs.getString("ref_country.abbr");
+				user.country = country;
+				
 				user.mobile = rs.getString("mobile");
 				user.homeTel = rs.getString("homeTel");
 				user.workTel = rs.getString("workTel");
 
+				user.binLevelAlert = rs.getInt("binLevelAlert");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastLoggedIn = rs.getTimestamp("last_logged_in");
 				if (lastLoggedIn == null) {
@@ -146,20 +174,43 @@ public class UserDAL {
 				user.id = id;
 				user.email = rs.getString("email");
 				user.password = rs.getString("password");
-				user.role = rs.getInt("role");
+				
+				Role role = new Role();
+				role.id = rs.getInt("role");
+				role.name = rs.getString("ref_roles.name");
+				user.role = role;
+				
 				user.parentId = rs.getInt("parentId");
-				user.status = rs.getInt("status");
-				user.locale = rs.getString("locale");
+				user.parentName = rs.getString("parentUser.name");
+				
+				Status status = new Status();
+				status.id = rs.getInt("status");
+				status.name = rs.getString("ref_status.name");
+				user.status = status;
+				
+				Locale locale = new Locale();
+				locale.abbr = rs.getString("locale");
+				locale.name = rs.getString("ref_locale.name");
+				user.locale = locale;
+				
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
 				user.city = rs.getString("city");
 				user.county = rs.getString("county");
 				user.postcode = rs.getString("postcode");
-				user.country = rs.getInt("country");
+				
+				Country country = new Country();
+				country.id = rs.getInt("country");
+				country.name = rs.getString("ref_country.name");
+				country.abbr = rs.getString("ref_country.abbr");
+				user.country = country;
+				
 				user.mobile = rs.getString("mobile");
 				user.homeTel = rs.getString("homeTel");
 				user.workTel = rs.getString("workTel");
+				
+				user.binLevelAlert = rs.getInt("binLevelAlert");
 				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
@@ -239,20 +290,43 @@ public class UserDAL {
 				user.email = email;
 				user.id = rs.getInt("id");
 				user.password = rs.getString("password");
-				user.role = rs.getInt("role");
+				
+				Role role = new Role();
+				role.id = rs.getInt("role");
+				role.name = rs.getString("ref_roles.name");
+				user.role = role;
+				
 				user.parentId = rs.getInt("parentId");
-				user.status = rs.getInt("status");
-				user.locale = rs.getString("locale");
+				user.parentName = rs.getString("parentUser.name");
+				
+				Status status = new Status();
+				status.id = rs.getInt("status");
+				status.name = rs.getString("ref_status.name");
+				user.status = status;
+				
+				Locale locale = new Locale();
+				locale.abbr = rs.getString("locale");
+				locale.name = rs.getString("ref_locale.name");
+				user.locale = locale;
+				
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
 				user.city = rs.getString("city");
 				user.county = rs.getString("county");
 				user.postcode = rs.getString("postcode");
-				user.country = rs.getInt("country");
+				
+				Country country = new Country();
+				country.id = rs.getInt("country");
+				country.name = rs.getString("ref_country.name");
+				country.abbr = rs.getString("ref_country.abbr");
+				user.country = country;
+				
 				user.mobile = rs.getString("mobile");
 				user.homeTel = rs.getString("homeTel");
 				user.workTel = rs.getString("workTel");
+				
+				user.binLevelAlert = rs.getInt("binLevelAlert");
 				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
@@ -333,17 +407,38 @@ public class UserDAL {
 				user.id = userId;
 				user.email = rs.getString("email");
 				user.password = rs.getString("password");
-				user.role = rs.getInt("role");
+				
+				Role role = new Role();
+				role.id = rs.getInt("role");
+				role.name = rs.getString("ref_roles.name");
+				user.role = role;
+				
 				user.parentId = rs.getInt("parentId");
-				user.status = rs.getInt("status");
-				user.locale = rs.getString("locale");
+				user.parentName = rs.getString("parentUser.name");
+				
+				Status status = new Status();
+				status.id = rs.getInt("status");
+				status.name = rs.getString("ref_status.name");
+				user.status = status;
+				
+				Locale locale = new Locale();
+				locale.abbr = rs.getString("locale");
+				locale.name = rs.getString("ref_locale.name");
+				user.locale = locale;
+				
 				user.name = rs.getString("name");
 				user.addr1 = rs.getString("addr1");
 				user.addr2 = rs.getString("addr2");
 				user.city = rs.getString("city");
 				user.county = rs.getString("county");
 				user.postcode = rs.getString("postcode");
-				user.country = rs.getInt("country");
+				
+				Country country = new Country();
+				country.id = rs.getInt("country");
+				country.name = rs.getString("ref_country.name");
+				country.abbr = rs.getString("ref_country.abbr");
+				user.country = country;
+				
 				user.mobile = rs.getString("mobile");
 				user.homeTel = rs.getString("homeTel");
 				user.workTel = rs.getString("workTel");
@@ -413,6 +508,7 @@ public class UserDAL {
 	
 	public static String encryptPassword(String password) {
 		log.info("UserDAL.encryptPassword");
+		log.info(password);
 		return Util.MD5(password);
 	}
 	
@@ -452,13 +548,13 @@ public class UserDAL {
 				prepStmt.setString(4, user.email);
 				
 				log.debug("Set Role: " + user.role);
-				prepStmt.setInt(5, user.role);
+				prepStmt.setInt(5, user.role.id);
 				
 				log.debug("Set Status: " + user.status);
-				prepStmt.setInt(6, user.status);
+				prepStmt.setInt(6, user.status.id);
 				
 				log.debug("Set Locale: " + user.locale);
-				prepStmt.setString(6, user.locale);
+				prepStmt.setString(6, user.locale.abbr);
 				
 				Instant currentInstant = Instant.now().truncatedTo(ChronoUnit.SECONDS); //gives UTC datetime
 				user.modifiedDate = currentInstant;
@@ -522,7 +618,7 @@ public class UserDAL {
 				conn.setAutoCommit(false);
 
 				log.debug("Status: " + status);
-				user.status = status;
+				user.status.id = status;
 				prepStmt.setInt(1, status);
 
 				Instant currentInstant = Instant.now().truncatedTo(ChronoUnit.SECONDS); //gives UTC datetime
@@ -609,13 +705,12 @@ public class UserDAL {
 			throw ex;
 		}
 		
-		return ;
-		
+		return;
 	}
 
 	public static void setUserStatus(int userId, int userStatus, int actionUserId) throws SQLException {
 		
-		log.info("UserDAL.setUserStatus(userid, userStatys, actionUser)");
+		log.info("UserDAL.setUserStatus(" + userId + ", " + userStatus + ", " + actionUserId + ")");
 
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
@@ -639,13 +734,13 @@ public class UserDAL {
 			throw ex;
 		}
 		
-		return ;
+		return;
 		
 	}
 
 	public static void setUserStatus(String email, int userStatus, int actionUserId) throws SQLException {
 		
-		log.info("UserDAL.setUserStatus(email, userStatys, actionUser)");
+		log.info("UserDAL.setUserStatus(" + email + ", " + userStatus + ", " + actionUserId + ")");
 
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
@@ -670,6 +765,59 @@ public class UserDAL {
 		}
 		
 		return ;
+		
+	}
+
+	public static User save (User user, int actionUserId) throws SQLException {
+		log.info("UserDAL.save(user, inActionId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call SaveUser(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setLong(1, user.id);
+			spStmt.setString(2, user.email);
+			spStmt.setString(3, encryptPassword(user.password));
+			spStmt.setInt(4, user.role.id);
+			spStmt.setInt(5, user.parentId);
+			spStmt.setInt(6, user.status.id);
+			spStmt.setString(7, user.locale.abbr);
+			spStmt.setString(8, user.name);
+			spStmt.setString(9, user.addr1);
+			spStmt.setString(10, user.addr2);
+			spStmt.setString(11, user.city);
+			spStmt.setString(12, user.county);
+			spStmt.setString(13, user.postcode);
+			spStmt.setInt(14, user.country.id);
+			spStmt.setString(15, user.mobile);
+			spStmt.setString(16, user.homeTel);
+			spStmt.setString(17, user.workTel);
+			spStmt.setInt(18, user.binLevelAlert);
+			spStmt.setInt(19, actionUserId);
+		    
+			spStmt.registerOutParameter(1, Types.BIGINT);
+			
+			spStmt.executeUpdate();
+			
+			user.id = spStmt.getInt(1);
+			
+			log.debug("userId: " + user.id);
+			
+		} catch (SQLException ex) {
+			log.error("UserDAL.save: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UserDAL.save(user, inActionId) - end");
+
+		return user;
 		
 	}
 }

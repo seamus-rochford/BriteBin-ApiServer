@@ -1,6 +1,6 @@
 package com.trandonsystems.britebin.model;
 
-public class BinContentType {
+public class ContentType {
 
 	public int id;
 	public String name;

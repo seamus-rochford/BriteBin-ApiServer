@@ -38,6 +38,8 @@ public class Test {
 	static Logger log = Logger.getLogger(Test.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+	static UserServices us = new UserServices();
+
 	private static void testLogging() {
 		
 		log.trace("Trace logging");
@@ -125,7 +127,6 @@ public class Test {
 	}
 
 	private static void testLogin( ) {
-		UserServices us = new UserServices();
 		
 		User user = new User();
 		user.email = "seamus@trandonsystems.com";
@@ -200,10 +201,26 @@ public class Test {
 		}
 	}
 	
+	private static void testSaveUser() {
+
+		User user = us.getUser(1, 6);
+		
+		log.info("Data: " + gson.toJson(user));
+		
+		user.id = 0;
+		user.name = "Rochford Seamus";
+		user.password = "seamus";
+		try {	
+			user = us.save(user, 1);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+	}
+	
 	public static void main(String[] args) {
 
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
+		testSaveUser();
+		
 //		testSaveData();
 		
 //		testLogging();
@@ -218,7 +235,7 @@ public class Test {
 	
 //		testUsers();
 		
-		testUnitReadings();
+//		testUnitReadings();
 
 	}
 

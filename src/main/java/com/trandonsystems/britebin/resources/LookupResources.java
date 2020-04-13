@@ -1,9 +1,7 @@
 package com.trandonsystems.britebin.resources;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import javax.json.Json;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -12,19 +10,19 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
-import com.trandonsystems.britebin.auth.JsonWebToken;
-import com.trandonsystems.britebin.model.BinContentType;
+import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Status;
 import com.trandonsystems.britebin.services.LookupServices;
 import com.trandonsystems.britebin.services.UserServices;
 
@@ -78,9 +76,9 @@ public class LookupResources {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("getBinContentTypes")
+	@Path("getContentTypes")
 	@JWTTokenNeeded
-	public Response getBinContentTypes(@Context HttpHeaders httpHeaders) {
+	public Response getContentTypes(@Context HttpHeaders httpHeaders) {
 		
 		try {
 			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
@@ -93,10 +91,10 @@ public class LookupResources {
 	
 			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
 									
-			List<BinContentType> binContentTypes = lookupServices.getBinContentTypes(locale);
+			List<ContentType> contentTypes = lookupServices.getContentTypes(locale);
 			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(gson.toJson(binContentTypes))
+				.entity(gson.toJson(contentTypes))
 				.build();
 		
 		} catch (Exception ex) {
@@ -128,6 +126,38 @@ public class LookupResources {
 			
 			return Response.status(Response.Status.OK) // 200 
 				.entity(gson.toJson(countries))
+				.build();
+		
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+
+    @GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getDeviceTypes")
+	@JWTTokenNeeded
+	public Response getDeviceTypes(@Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
+			log.debug("locale: " + locale);
+			
+			List<DeviceType> deviceTypes = lookupServices.getDeviceTypes(locale);
+						
+			return Response.status(Response.Status.OK) // 200 
+				.entity(gson.toJson(deviceTypes))
 				.build();
 		
 		} catch (Exception ex) {
@@ -169,7 +199,6 @@ public class LookupResources {
 		}	
 	}
 	
-	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getRoles")
@@ -201,5 +230,35 @@ public class LookupResources {
 		}	
 	}
 	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getStatus")
+	@JWTTokenNeeded
+	public Response getStatus(@Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
+			
+			List<Status> status = lookupServices.getStatus(locale);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(gson.toJson(status))
+				.build();
+		
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
 	
 }

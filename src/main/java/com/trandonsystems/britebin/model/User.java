@@ -17,17 +17,18 @@ public class User {
 	public int id;
 	public String email;
 	public String password;
-	public int role;  
+	public Role role;  
 	public int parentId;  
-	public int status;  // -1 = inactive, 0 - registered, 1 -  active
-	public String locale;
+	public String parentName;
+	public Status status;  // -1 = inactive, 0 - registered, 1 -  active
+	public Locale locale;
 	public String name;
 	public String addr1;
 	public String addr2;
 	public String city;
 	public String county;
 	public String postcode;
-	public int country;
+	public Country country;
 	public String mobile;
 	public String homeTel;
 	public String workTel;

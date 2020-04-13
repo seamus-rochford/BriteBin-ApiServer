@@ -5,7 +5,6 @@ import java.util.List;
 import javax.json.Json;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -39,7 +38,7 @@ public class UserResources {
 		log.debug("User resource is working!");
         return "User resource is working!";
     }
-    
+	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUser")
@@ -75,17 +74,8 @@ public class UserResources {
 				user = null;
 			}
 			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);		
-			
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("user", gson.toJson(user))
-					.build()
-					.toString();
-			
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(user)
 				.build();
 		
 		} catch (Exception ex) {
@@ -115,18 +105,9 @@ public class UserResources {
 	
 			List<User>users = userServices.getUsers(userFilterId);
 			
-			// Get a new token
-			String newToken = JsonWebToken.verify(jwtToken);
-			
-			String usersJson = gson.toJson(users);
-			String json = Json.createObjectBuilder()
-					.add("token", newToken)
-					.add("users", usersJson)
-					.build()
-					.toString();
-			
+			log.debug("No. Users: " + users.size());
 			return Response.status(Response.Status.OK) // 200 
-				.entity(json)
+				.entity(users)
 				.build();
 			
 		} catch (Exception ex) {
@@ -159,7 +140,7 @@ public class UserResources {
 						.entity("Invalid password")
 						.build();
 			default:
-				if (user.status == User.USER_STATUS_ACTIVE) {
+				if (user.status.id == User.USER_STATUS_ACTIVE) {
 					String token = JsonWebToken.createJWT(user);
 					// Clear the password so that it is NOT sent back
 					user.password = null;
@@ -174,7 +155,7 @@ public class UserResources {
 							.entity(json)
 							.build();
 					
-				} else if (user.status == User.USER_STATUS_REGISTERED) {
+				} else if (user.status.id == User.USER_STATUS_REGISTERED) {
 					return Response.status(Response.Status.UNAUTHORIZED) // 401 
 							.entity("401 - User registered but must change password")
 							.build();
@@ -193,8 +174,7 @@ public class UserResources {
 		}
 	}
 
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
+	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("verifyToken")
 	@JWTTokenNeeded
@@ -239,54 +219,29 @@ public class UserResources {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("resetPassword")
-	public Response resetPassowrd(User user) {
+	@JWTTokenNeeded
+	public Response resetPassword(User user) {
 		try {
 			log.info("POST: Login user");
 			log.info("User: " + user.email);
 			
-			// Save the new password because it will be lost when we call loginUser
+			// Save the new password because it will be lost when we call resetPassword
 			String newPassword = user.newPassword;
 			
-			int errorCode = userServices.loginUser(user);
-			log.info("ErrorCode: " + errorCode);
+			userServices.resetPassword(user);
 
-			switch (errorCode) {
-			case -1:
-				return Response.status(Response.Status.UNAUTHORIZED) // 401 
-						.entity("Invalid email")
-						.build();
-			case -2:
-				return Response.status(Response.Status.UNAUTHORIZED) // 401 
-						.entity("Invalid password")
-						.build();
-			default:
-				if (user.status == User.USER_STATUS_ACTIVE || user.status == User.USER_STATUS_REGISTERED) {
-					
-					user.newPassword = newPassword;
-					
-					userServices.resetPassword(user);
-					
-					String token = JsonWebToken.createJWT(user);
+			// Clear the password so that it is NOT sent back
+			user.password = null;
+			user.newPassword = null;
+			
+			String json = Json.createObjectBuilder()
+									.add("user", gson.toJson(user))
+									.build()
+									.toString();
+			return Response.status(Response.Status.OK) // 200 
+					.entity(json)
+					.build();
 
-					// Clear the password so that it is NOT sent back
-					user.password = null;
-					user.newPassword = null;
-					
-					String json = Json.createObjectBuilder()
-											.add("token", token)
-											.add("user", gson.toJson(user))
-											.build()
-											.toString();
-					return Response.status(Response.Status.OK) // 200 
-							.entity(json)
-							.build();
-				}
-				
-				// User is inactive
-				return Response.status(Response.Status.UNAUTHORIZED) // 401 
-						.entity("Unauthorized")
-						.build();
-			}
 		}
 		catch(Exception ex) {
 			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
@@ -296,10 +251,18 @@ public class UserResources {
 		}
 	}
 
+	private String SuccessJson() {
+		String json = Json.createObjectBuilder()
+				.add("Success", true)
+				.build()
+				.toString();
+		return json;
+	}
+	
 	@POST
+	@Path("deactivateUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("deactivateUser")
 	@JWTTokenNeeded
 	public Response deactivateUser(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		try {
@@ -323,7 +286,7 @@ public class UserResources {
 				userServices.setUserStatus(email, User.USER_STATUS_INACTIVE, actionUserId);
 				
 				return Response.status(Response.Status.OK) // 200 
-						.entity("Success")
+						.entity(SuccessJson())
 						.build();
 			} else if (queryParams.containsKey("userId")) {
 				int userId = Integer.parseInt(queryParams.getFirst("userId"));
@@ -332,7 +295,7 @@ public class UserResources {
 				userServices.setUserStatus(userId, User.USER_STATUS_INACTIVE, actionUserId);
 				
 				return Response.status(Response.Status.OK) // 200 
-						.entity("Success")
+						.entity(SuccessJson())
 						.build();
 			} 
 			
@@ -350,9 +313,9 @@ public class UserResources {
 	}
 
 	@POST
+	@Path("activateUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("activateUser")
 	@JWTTokenNeeded
 	public Response activateUser(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		try {
@@ -373,25 +336,68 @@ public class UserResources {
 				String email = queryParams.getFirst("email");
 				log.debug("email: " + email);
 				
-				userServices.setUserStatus(email, User.USER_STATUS_ACTIVE, actionUserId);
+				userServices.setUserStatus(email, User.USER_STATUS_REGISTERED, actionUserId);
 				
 				return Response.status(Response.Status.OK) // 200 
-						.entity("Success")
+						.entity(SuccessJson())
 						.build();
 			} else if (queryParams.containsKey("userId")) {
 				int userId = Integer.parseInt(queryParams.getFirst("userId"));
 				log.debug("userId: " + userId);
 								
-				userServices.setUserStatus(userId, User.USER_STATUS_ACTIVE, actionUserId);
+				userServices.setUserStatus(userId, User.USER_STATUS_REGISTERED, actionUserId);
 				
 				return Response.status(Response.Status.OK) // 200 
-						.entity("Success")
+						.entity(SuccessJson())
 						.build();
 			} 
 			
 			return Response.status(Response.Status.BAD_REQUEST) // 400 
 					.entity("User not identified - please send id or email of user")
 					.build();
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();
+		}
+	}
+
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("save")
+	@JWTTokenNeeded
+	public Response save(@Context HttpHeaders httpHeader, User user) {
+		try {
+			log.info("POST: save user");
+			log.info("User: " + gson.toJson(user));
+			
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+
+			user = userServices.save(user, actionUserId);
+			log.info("Saved user: " + gson.toJson(user));
+
+			user.password = null;
+			
+			String json = Json.createObjectBuilder()
+									.add("user", gson.toJson(user))
+									.build()
+									.toString();
+			
+			return Response.status(Response.Status.OK) // 200 
+					.entity(json)
+					.build();
+		
 		}
 		catch(Exception ex) {
 			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());

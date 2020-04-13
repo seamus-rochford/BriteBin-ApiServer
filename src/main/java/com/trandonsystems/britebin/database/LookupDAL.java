@@ -10,11 +10,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.trandonsystems.britebin.model.BinContentType;
+import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Status;
 
 public class LookupDAL {
 
@@ -22,7 +24,7 @@ public class LookupDAL {
 
 	public static List<BinType> getBinTypes(String locale) {
 		
-		log.info("LookupDAL.getBinTypes");
+		log.info("LookupDAL.getBinTypes(" + locale + ")");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -56,7 +58,7 @@ public class LookupDAL {
 		return binTypes;
 	}
 
-	public static List<BinContentType> getBinContentTypes(String locale) {
+	public static List<ContentType> getContentTypes(String locale) {
 		
 		log.info("LookupDAL.getBinTypes");
 		try {
@@ -65,7 +67,7 @@ public class LookupDAL {
 			log.error("ERROR: " + ex.getMessage());
 		}
 
-		List<BinContentType> binContentTypes = new ArrayList<BinContentType>();
+		List<ContentType> contentTypes = new ArrayList<ContentType>();
 
 		String spCall = "{ call GetContentTypes(?) }";
 		log.info("SP Call: " + spCall);
@@ -77,18 +79,18 @@ public class LookupDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				BinContentType binContentType = new BinContentType();
+				ContentType contentType = new ContentType();
 
-				binContentType.id = rs.getInt("id");
-				binContentType.name = rs.getString("name");
+				contentType.id = rs.getInt("id");
+				contentType.name = rs.getString("name");
 
-				binContentTypes.add(binContentType);
+				contentTypes.add(contentType);
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
 
-		return binContentTypes;
+		return contentTypes;
 	}
 
 	public static List<Country> getCountries(String locale) {
@@ -125,6 +127,41 @@ public class LookupDAL {
 		}
 
 		return countries;
+	}
+
+	public static List<DeviceType> getDeviceTypes(String locale) {
+		
+		log.info("LookupDAL.getDeviceTypes");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<DeviceType> deviceTypes = new ArrayList<DeviceType>();
+
+		String spCall = "{ call GetDeviceTypes(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, locale);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				DeviceType deviceType = new DeviceType();
+
+				deviceType.id = rs.getInt("id");
+				deviceType.name = rs.getString("name");
+
+				deviceTypes.add(deviceType);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return deviceTypes;
 	}
 
 	public static List<Locale> getLocales(String translateLocale) {
@@ -196,6 +233,41 @@ public class LookupDAL {
 		}
 
 		return roles;
+	}
+
+	public static List<Status> getStatus(String locale) {
+		
+		log.info("LookupDAL.getRoles");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<Status> statusList = new ArrayList<Status>();
+
+		String spCall = "{ call GetStatus(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, locale);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				Status status = new Status();
+
+				status.id = rs.getInt("id");
+				status.name = rs.getString("Name");
+
+				statusList.add(status);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return statusList;
 	}
 
 }

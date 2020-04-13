@@ -29,7 +29,7 @@ public class JsonWebToken {
 	private static String SECRET_KEY = "BriteBin-PEL-20200229";
 	private static String ISSUER = "britebin.com";
 	
-	private static long DEFAULT_TIMEOUT_MILLI_SECONDS = 20 * 60 * 1000;  // 20 minutes
+	private static long DEFAULT_TIMEOUT_MILLI_SECONDS = 6 * 20 * 60 * 1000;  // 20 minutes
     
     public JsonWebToken() {
     }
@@ -84,7 +84,7 @@ public class JsonWebToken {
                 .setSubject(user.email)
                 .setIssuer(ISSUER)
                 .claim("name", user.name)
-                .claim("role", String.valueOf(user.role))
+                .claim("role", String.valueOf(user.role.id))
                 .claim("email", user.email)
                 .claim("parent", String.valueOf(user.parentId))
                 .claim("status", String.valueOf(user.status))
