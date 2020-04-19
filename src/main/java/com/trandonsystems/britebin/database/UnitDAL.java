@@ -75,6 +75,7 @@ public class UnitDAL {
 				binType.id = rs.getInt("ref_bin_type.id");
 				binType.name = rs.getString("ref_bin_type.name");
 				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
+				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
 				unit.binType = binType;
 				
 				ContentType contentType = new ContentType();
@@ -84,6 +85,7 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
@@ -168,6 +170,7 @@ public class UnitDAL {
 				binType.id = rs.getInt("ref_bin_type.id");
 				binType.name = rs.getString("ref_bin_type.name");
 				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
+				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
 				unit.binType = binType;
 				
 				ContentType contentType = new ContentType();
@@ -177,6 +180,7 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
@@ -264,6 +268,7 @@ public class UnitDAL {
 				binType.id = rs.getInt("ref_bin_type.id");
 				binType.name = rs.getString("ref_bin_type.name");
 				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
+				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
 				unit.binType = binType;
 				
 				ContentType contentType = new ContentType();
@@ -273,6 +278,7 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
@@ -373,7 +379,11 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 
+				unit.reading40percent = rs.getInt("reading40percent");
+				unit.reading100percent = rs.getInt("reading100percent");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
@@ -499,7 +509,11 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 
+				unit.reading40percent = rs.getInt("reading40percent");
+				unit.reading100percent = rs.getInt("reading100percent");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
@@ -624,7 +638,11 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 
+				unit.reading40percent = rs.getInt("reading40percent");
+				unit.reading100percent = rs.getInt("reading100percent");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
@@ -777,6 +795,7 @@ public class UnitDAL {
 				binType.id = rs.getInt("ref_bin_type.id");
 				binType.name = rs.getString("ref_bin_type.name");
 				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
+				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
 				unit.binType = binType;
 				
 				ContentType contentType = new ContentType();
@@ -786,7 +805,11 @@ public class UnitDAL {
 				
 				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 				unit.emptyLevel = rs.getInt("emptyLevel");
+				unit.fullLevel = rs.getInt("fullLevel");
 
+				unit.reading40percent = rs.getInt("reading40percent");
+				unit.reading100percent = rs.getInt("reading100percent");
+				
 				// Convert database timestamp(UTC date) to local time instant
 				Timestamp lastActivity = rs.getTimestamp("lastActivity");
 				if (lastActivity == null) {
@@ -986,7 +1009,7 @@ public class UnitDAL {
 			log.error("ERROR: " + ex.getMessage());
 		}
 		
-		String spCall = "{ call SaveUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		String spCall = "{ call SaveUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
@@ -1003,7 +1026,8 @@ public class UnitDAL {
 			spStmt.setInt(9, unit.contentType.id);
 			spStmt.setInt(10, unit.useBinTypeLevel ? 1 : 0);
 			spStmt.setInt(11, unit.emptyLevel);
-			spStmt.setInt(12, actionUserId);
+			spStmt.setInt(12, unit.fullLevel);
+			spStmt.setInt(13, actionUserId);
 		    
 			spStmt.registerOutParameter(1, Types.BIGINT);
 			

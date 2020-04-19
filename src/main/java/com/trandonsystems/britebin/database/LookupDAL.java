@@ -11,6 +11,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.trandonsystems.britebin.model.ContentType;
+import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.DeviceType;
@@ -21,6 +22,41 @@ import com.trandonsystems.britebin.model.Status;
 public class LookupDAL {
 
 	static Logger log = Logger.getLogger(LookupDAL.class);
+
+	public static List<BinLevel> getBinLevels(String locale) {
+		
+		log.info("LookupDAL.getBinLevels(" + locale + ")");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<BinLevel> binLevels = new ArrayList<BinLevel>();
+
+		String spCall = "{ call getBinLevels(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, locale);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				BinLevel binLevel = new BinLevel();
+
+				binLevel.id = rs.getInt("id");
+				binLevel.name = rs.getString("name");
+
+				binLevels.add(binLevel);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return binLevels;
+	}
 
 	public static List<BinType> getBinTypes(String locale) {
 		
@@ -48,6 +84,7 @@ public class LookupDAL {
 				binType.id = rs.getInt("id");
 				binType.name = rs.getString("name");
 				binType.emptyLevel = rs.getInt("emptyLevel");
+				binType.fullLevel = rs.getInt("fullLevel");
 
 				binTypes.add(binType);
 			}

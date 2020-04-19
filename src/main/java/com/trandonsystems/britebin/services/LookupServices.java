@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.LookupDAL;
 import com.trandonsystems.britebin.model.ContentType;
+import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.DeviceType;
@@ -21,6 +22,11 @@ public class LookupServices {
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
    	
+	public List<BinLevel> getBinLevels(String locale) {
+		log.info("LookupServices.getBinLevels(locale)");
+		return LookupDAL.getBinLevels(locale);
+	}
+	
 	public List<BinType> getBinTypes(String locale) {
 		log.info("LookupServices.getBinTypes(locale)");
 		return LookupDAL.getBinTypes(locale);

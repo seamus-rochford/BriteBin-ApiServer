@@ -42,4 +42,5 @@ public class UnitReading {
 	
 	public Instant readingDateTime;
 	public Instant insertDateTime;
+
 }

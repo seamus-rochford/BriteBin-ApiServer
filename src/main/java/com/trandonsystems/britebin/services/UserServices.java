@@ -105,10 +105,19 @@ public class UserServices {
 	}
 	
 	public void resetPassword(User user) throws SQLException {
-		log.info("UserService.loginUser");
+		// reset requested by user themselves
+		log.info("UserService.resetPassword(user)");
 	
 		// Reset password
 		UserDAL.resetPassword(user);
+	}
+	
+	public void resetPassword(User user, int actionUserId) throws SQLException {
+		// reset requested by admin user
+		log.info("UserService.resetPassword(user, actionUserId");
+	
+		// Reset password
+		UserDAL.resetPassword(user, actionUserId);
 	}
 	
 	public void setUserStatus(int userId, int userStatus, int actionUserId) throws SQLException {

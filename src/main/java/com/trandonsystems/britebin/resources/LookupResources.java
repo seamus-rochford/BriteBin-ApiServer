@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
 import com.trandonsystems.britebin.model.ContentType;
+import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.DeviceType;
@@ -42,6 +43,38 @@ public class LookupResources {
         return "Lookup resource is working!";
     }
     
+    @GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getBinLevels")
+	@JWTTokenNeeded
+	public Response getBinLevels(@Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
+			log.debug("locale: " + locale);
+			
+			List<BinLevel> binLevels = lookupServices.getBinLevels(locale);
+						
+			return Response.status(Response.Status.OK) // 200 
+				.entity(gson.toJson(binLevels))
+				.build();
+		
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
     @GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getBinTypes")

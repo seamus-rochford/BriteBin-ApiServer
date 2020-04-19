@@ -508,15 +508,14 @@ public class UserDAL {
 	
 	public static String encryptPassword(String password) {
 		log.info("UserDAL.encryptPassword");
-		log.info(password);
 		return Util.MD5(password);
 	}
 	
 	public static boolean passwordMatch(String inputPassword, String encryptedPassword) {
 		log.info("UserDAL.passwordMatch");
-		log.debug("inputPassword: " + inputPassword);
-		log.debug("inputPassword.md5: " + Util.MD5(inputPassword));
-		log.debug("DB Password: " + encryptedPassword);
+//		log.debug("inputPassword: " + inputPassword);
+//		log.debug("inputPassword.md5: " + Util.MD5(inputPassword));
+//		log.debug("DB Password: " + encryptedPassword);
 		return (Util.MD5(inputPassword).equals(encryptedPassword));
 	}
 	
@@ -681,7 +680,7 @@ public class UserDAL {
 	}
 
 	public static void resetPassword(User user) throws SQLException {
-		
+		// reset requested by the user themselves
 		log.info("UserDAL.resetPassword(user)");
 
 		try {
@@ -690,7 +689,13 @@ public class UserDAL {
 			log.error("ERROR: " + ex.getMessage());
 		}
 
-		String spCall = "{ call ResetPassword(?, ?) }";
+		// Verify Old Password
+		User userOld = get(1, user.id);
+		if (!passwordMatch(user.password, userOld.password)) {
+			throw new SQLException("Invalid 'OLD' password");
+		}
+		
+		String spCall = "{ call changePassword(?, ?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
@@ -708,6 +713,35 @@ public class UserDAL {
 		return;
 	}
 
+	public static void resetPassword(User user, int actionUserId) throws SQLException {
+		// reset requested by Admin user - oldPassword not known
+		log.info("UserDAL.resetPassword(user, actionUserId)");
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		String spCall = "{ call resetPassword(?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, user.id);
+			spStmt.setString(2, encryptPassword(user.newPassword));
+			spStmt.setInt(3, actionUserId);
+			spStmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+		
+		return;
+	}
+	
 	public static void setUserStatus(int userId, int userStatus, int actionUserId) throws SQLException {
 		
 		log.info("UserDAL.setUserStatus(" + userId + ", " + userStatus + ", " + actionUserId + ")");

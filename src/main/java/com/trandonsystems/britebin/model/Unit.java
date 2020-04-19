@@ -15,6 +15,7 @@ public class Unit {
 	public ContentType contentType;
 	public boolean useBinTypeLevel;
 	public int emptyLevel;
+	public int fullLevel;
 	public Instant lastActivity;
 
 	public Instant insertDate;
@@ -22,4 +23,6 @@ public class Unit {
 	public Instant modifiedDate;
 	public int modifiedBy;
 		
+	public int reading40percent;
+	public int reading100percent;
 }

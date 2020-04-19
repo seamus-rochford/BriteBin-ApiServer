@@ -7,8 +7,8 @@ import org.apache.log4j.Logger;
 public class Util {
 
 	// Local DB
-	public static String connUrl = "jdbc:mysql://localhost:3306/britebin";
-//	public static String connUrl = "jdbc:mysql://localhost:3306/britebin?serverTimezone=UTC";
+//	public static String connUrl = "jdbc:mysql://localhost:3306/britebin";
+	public static String connUrl = "jdbc:mysql://localhost:3306/britebin?serverTimezone=UTC";
 	public static String username = "admin";
 	public static String password = "Rebel123456#.";
 

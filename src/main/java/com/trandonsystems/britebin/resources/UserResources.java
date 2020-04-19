@@ -140,24 +140,33 @@ public class UserResources {
 						.entity("Invalid password")
 						.build();
 			default:
+				String token = JsonWebToken.createJWT(user);
+				// Clear the password so that it is NOT sent back
+				user.password = null;
+				
 				if (user.status.id == User.USER_STATUS_ACTIVE) {
-					String token = JsonWebToken.createJWT(user);
-					// Clear the password so that it is NOT sent back
-					user.password = null;
 					
 					String json = Json.createObjectBuilder()
 											.add("token", token)
 											.add("user", gson.toJson(user))
 											.build()
 											.toString();
-					
+
 					return Response.status(Response.Status.OK) // 200 
 							.entity(json)
 							.build();
 					
 				} else if (user.status.id == User.USER_STATUS_REGISTERED) {
-					return Response.status(Response.Status.UNAUTHORIZED) // 401 
-							.entity("401 - User registered but must change password")
+					
+					String json = Json.createObjectBuilder()
+											.add("token", token)
+											.add("user", gson.toJson(user))
+											.add("message", "User registered but must change password")
+											.build()
+											.toString();
+
+					return Response.status(Response.Status.CREATED) // 201 
+							.entity(json)
 							.build();
 				}
 				// User is inactive
@@ -202,42 +211,6 @@ public class UserResources {
 					.build()
 					.toString();
 			
-			return Response.status(Response.Status.OK) // 200 
-					.entity(json)
-					.build();
-
-		}
-		catch(Exception ex) {
-			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
-			return Response.status(Response.Status.BAD_REQUEST) // 400 
-					.entity("Error: " + ex.getMessage())
-					.build();
-		}
-	}
-
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("resetPassword")
-	@JWTTokenNeeded
-	public Response resetPassword(User user) {
-		try {
-			log.info("POST: Login user");
-			log.info("User: " + user.email);
-			
-			// Save the new password because it will be lost when we call resetPassword
-			String newPassword = user.newPassword;
-			
-			userServices.resetPassword(user);
-
-			// Clear the password so that it is NOT sent back
-			user.password = null;
-			user.newPassword = null;
-			
-			String json = Json.createObjectBuilder()
-									.add("user", gson.toJson(user))
-									.build()
-									.toString();
 			return Response.status(Response.Status.OK) // 200 
 					.entity(json)
 					.build();
@@ -407,5 +380,130 @@ public class UserResources {
 		}
 	}
 
+	@GET
+	@Path("changePassword")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response changePassword(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
+		// This is called by the user themselves
+		try {
+			log.info("changePassword");
+			
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+	
+			User user = new User();
+			if (queryParams.containsKey("userId")) {
+				user.id = Integer.parseInt(queryParams.getFirst("userId"));
+				
+				if (user.id != actionUserId) {
+					// This routine can only be called by the user themselves
+					throw new Exception("This resource can only be called by the user themselves");
+				}
+			} else {
+				throw new Exception("No user Id supplied");
+			}
+			if (queryParams.containsKey("oldPassword")) {
+				user.password = queryParams.getFirst("oldPassword");
+			} else {
+				throw new Exception("No 'OLD' password supplied");
+			}				
+			if (queryParams.containsKey("newPassword")) {
+				user.newPassword = queryParams.getFirst("newPassword");
+			} else {
+				throw new Exception("No 'NEW' password supplied");
+			}
+				
+			if (queryParams.containsKey("confirmPassword")) {
+				String confirmPassword = queryParams.getFirst("confirmPassword");
+				
+				if (!user.newPassword.equals(confirmPassword)) {
+					throw new Exception("'NEW' password and 'CONFIRM' password do not match");
+				}
+			} else {
+				throw new Exception("No 'CONFIRM' password supplied");
+			}
+			
+			log.debug("Passwords match");
+			userServices.resetPassword(user);
+				
+			return Response.status(Response.Status.OK) // 200 
+					.entity(SuccessJson())
+					.build();
+			
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();
+		}
+	}
+
+	@GET
+	@Path("resetPassword")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@JWTTokenNeeded
+	public Response resetPassword(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
+		try {
+			log.info("resetPassword");
+			
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+	
+			User user = new User();
+			if (queryParams.containsKey("userId")) {
+				user.id = Integer.parseInt(queryParams.getFirst("userId"));
+			} else {
+				throw new Exception("No user Id supplied");
+			}			
+			if (queryParams.containsKey("newPassword")) {
+				user.newPassword = queryParams.getFirst("newPassword");
+			} else {
+				throw new Exception("No 'NEW' password supplied");
+			}
+				
+			if (queryParams.containsKey("confirmPassword")) {
+				String confirmPassword = queryParams.getFirst("confirmPassword");
+				
+				if (!user.newPassword.equals(confirmPassword)) {
+					throw new Exception("'NEW' password and 'CONFIRM' password do not match");
+				}
+			} else {
+				throw new Exception("No 'CONFIRM' password supplied");
+			}
+				
+			log.debug("Passwords match");
+			userServices.resetPassword(user, actionUserId);
+				
+			return Response.status(Response.Status.OK) // 200 
+					.entity(SuccessJson())
+					.build();
+			
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();
+		}
+	}
 	
 }
