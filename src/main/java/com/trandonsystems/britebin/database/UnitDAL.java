@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.jasypt.util.password.*;
 
 import com.trandonsystems.britebin.model.ContentType;
+import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Unit;
@@ -320,7 +321,213 @@ public class UnitDAL {
 
 		return units;
 	}
+	
+	private static int computePercentageTekelek(int binType, int value) {
+		int result = 0;
+		
+		double reading40percent = 0;
+		double reading100percent = 0;
+		
+		if (binType == 1) {
+			// Model 120
+			reading40percent = 49.4;
+			reading100percent = 18.0;
+		} else {
+			// Model 240, Model 360
+			reading40percent = 73.9;
+			reading100percent = 18.0;
+		}
+		
+		double dominator = reading40percent - reading100percent;
+		result = (int)Math.round(100 - (value - reading100percent) / dominator * 60);
 
+		log.debug("computePercentageTekelek - Value: " + value + "    Percentage: " + result + " %");
+		
+		return result;
+	}
+	
+	private static int computePercentagePelBin(int binType, int value) {
+		int result = 0;
+		
+		double readingZeropercent = 0;
+		double reading50percent = 0;
+		double reading100percent = 0;
+		
+		if (binType == 1) {
+			// Model 120
+			readingZeropercent = 156;
+			reading50percent = 53;
+			reading100percent = 29;
+			
+			if (value >= reading50percent) {
+				result = (int)Math.round(50 * (value - reading50percent) / (readingZeropercent - reading50percent)) + 50;
+			} else {
+				result = (int)Math.round(50 * (value - reading100percent) / (reading50percent - reading100percent));
+			}
+		} else {
+			// Model 240, Model 360
+			readingZeropercent = 140;
+			reading50percent = 42;
+			reading100percent = 21;
+
+			if (value >= reading50percent) {
+				result = (int)Math.round(50 * (value - reading50percent) / (readingZeropercent - reading50percent)) + 50;
+			} else {
+				result = (int)Math.round(50 * (value - reading100percent) / (reading50percent - reading100percent));
+			}
+		}
+
+		log.debug("computePercentagePelBin - Value: " + value + "    Percentage: " + result + " %");
+		
+		return result;
+	}
+	
+	public static UnitReading setUnitReadingValues(ResultSet rs) throws SQLException {
+		UnitReading unitReading = new UnitReading();
+		
+		unitReading.id = rs.getInt("unit_readings.id");
+		
+		Unit unit = new Unit();
+		unit.id  = rs.getInt("units.id");
+		unit.serialNo = rs.getString("serialNo");
+		unit.location = rs.getString("location");
+		unit.latitude = rs.getDouble("latitude");
+		unit.longitude = rs.getDouble("longitude");
+		
+		User owner = new User();
+		owner.id = rs.getInt("users.id");
+		owner.name = rs.getString("users.name");
+		owner.email = rs.getString("users.email");
+		unit.owner = owner;
+		
+		DeviceType deviceType = new DeviceType();
+		deviceType.id = rs.getInt("ref_device_type.id");
+		deviceType.name = rs.getString("ref_device_type.name");
+		unit.deviceType = deviceType;
+		
+		BinType binType = new BinType();
+		binType.id = rs.getInt("ref_bin_type.id");
+		binType.name = rs.getString("ref_bin_type.name");
+		binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
+		binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
+		unit.binType = binType;
+		
+		ContentType contentType = new ContentType();
+		contentType.id = rs.getInt("ref_content_type.id");
+		contentType.name = rs.getString("ref_content_type.name");	
+		unit.contentType = contentType;
+		
+		unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
+		unit.emptyLevel = rs.getInt("emptyLevel");
+		unit.fullLevel = rs.getInt("fullLevel");
+
+		unit.reading40percent = rs.getInt("reading40percent");
+		unit.reading100percent = rs.getInt("reading100percent");
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp lastActivity = rs.getTimestamp("lastActivity");
+		if (lastActivity == null) {
+			unit.lastActivity = null;
+		}
+		else {
+			java.time.Instant lastActivityInstant = lastActivity.toInstant();
+			unit.lastActivity = lastActivityInstant;
+		}				
+		unitReading.unit = unit;
+		
+		unitReading.serialNo = rs.getString("serialNo");
+		unitReading.msgType = rs.getInt("msgType");
+		unitReading.binLevel = rs.getInt("binLevel");
+		unitReading.binLevelBC = rs.getInt("BinLevelBC");
+		if (unitReading.binLevel == 0) {
+			// No compaction done
+			unitReading.compactionDone = false;
+			unitReading.binLevel = unitReading.binLevelBC;
+		} else {
+			unitReading.compactionDone = false;
+		}
+		
+		unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");
+		unitReading.batteryVoltage = rs.getInt("batteryVoltage");
+		unitReading.temperature = rs.getInt("temperature");
+		unitReading.noCompactions = rs.getInt("noCompactions");
+		unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
+		
+		unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
+		unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
+		unitReading.batteryOverTempLO = (rs.getInt("batteryOverTempLO") == 1);
+		unitReading.binLocked = (rs.getInt("binLocked") == 1);
+		unitReading.binFull = (rs.getInt("binFull") == 1);
+		unitReading.binTilted = (rs.getInt("binTilted") == 1);
+		unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
+		unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
+
+		unitReading.rssi = rs.getDouble("rssi");
+		unitReading.src = rs.getInt("src");
+		unitReading.snr = rs.getDouble("snr");
+		unitReading.ber = rs.getInt("ber");
+		unitReading.rsrq = rs.getDouble("rsrq");
+		unitReading.rsrp = rs.getInt("rsrp");
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
+		if (readingDateTime == null) {
+			unitReading.readingDateTime = null;
+		}
+		else {
+			java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
+			unitReading.readingDateTime = readingDateTimenInstant;
+		}
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp insertDateTime = rs.getTimestamp("unit_readings.insertDateTime");
+		if (insertDateTime == null) {
+			unitReading.insertDateTime = null;
+		}
+		else {
+			java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
+			unitReading.insertDateTime = insertDateTimeInstant;
+		}
+		
+		// Compute Percentages
+		if (unit.deviceType.id == 1) {
+			// Tekelek Sensor
+			unitReading.binLevelPercent = computePercentageTekelek(unit.binType.id, unitReading.binLevel);
+			unitReading.binLevelBCPercent = computePercentageTekelek(unit.binType.id, unitReading.binLevelBC);
+		} else {
+			// Pel Bin Sensor
+			unitReading.binLevelPercent = computePercentagePelBin(unit.binType.id, unitReading.binLevel);
+			unitReading.binLevelBCPercent = computePercentagePelBin(unit.binType.id, unitReading.binLevelBC);
+		}
+		
+		// Decide on the BinLevel
+		int binLevelStatus = BinLevel.BIN_EMPTY;
+		log.debug("Unit Id: " + unit.id);
+		log.debug("useBinTypeLevel: " + unit.useBinTypeLevel);
+		if (unit.useBinTypeLevel) {
+			if (unitReading.binLevelPercent >= binType.fullLevel) {
+				binLevelStatus = BinLevel.BIN_FULL;
+			} else if (unitReading.binLevelPercent <= binType.emptyLevel) {
+				binLevelStatus = BinLevel.BIN_EMPTY;
+			} else {
+				binLevelStatus = BinLevel.BIN_BETWEEN;
+			}
+			log.debug("Status set from BinType: " + binLevelStatus);
+		} else { // Use unit bin levels
+			if (unitReading.binLevelPercent >= unit.fullLevel) {
+				binLevelStatus = BinLevel.BIN_FULL;
+			} else if (unitReading.binLevelPercent <= unit.emptyLevel) {
+				binLevelStatus = BinLevel.BIN_EMPTY;
+			} else {
+				binLevelStatus = BinLevel.BIN_BETWEEN;
+			}
+			log.debug("Status set from Unit: " + binLevelStatus);
+		}
+		unitReading.binLevelStatus = binLevelStatus;
+		
+		return unitReading;
+	}
+	
 	public static List<UnitReading> getUnitReadings(int userFilterId, int unitId, int limit) {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
@@ -344,102 +551,7 @@ public class UnitDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				UnitReading unitReading = new UnitReading();
-
-				unitReading.id = rs.getInt("unit_readings.id");
-				
-				Unit unit = new Unit();
-				unit.id  = rs.getInt("units.id");
-				unit.serialNo = rs.getString("serialNo");
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
-				
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				owner.email = rs.getString("users.email");
-				unit.owner = owner;
-				
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-				
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-
-				unit.reading40percent = rs.getInt("reading40percent");
-				unit.reading100percent = rs.getInt("reading100percent");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}				
-				unitReading.unit = unit;
-				
-				unitReading.serialNo = rs.getString("serialNo");
-				unitReading.msgType = rs.getInt("msgType");
-				unitReading.binLevel = rs.getInt("binLevel");
-				unitReading.binLevelBC = rs.getInt("BinLevelBC");
-				unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");
-				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
-				unitReading.temperature = rs.getInt("temperature");
-				unitReading.noCompactions = rs.getInt("noCompactions");
-				unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
-				
-				unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
-				unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
-				unitReading.batteryOverTempLO = (rs.getInt("batteryOverTempLO") == 1);
-				unitReading.binLocked = (rs.getInt("binLocked") == 1);
-				unitReading.binFull = (rs.getInt("binFull") == 1);
-				unitReading.binTilted = (rs.getInt("binTilted") == 1);
-				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
-				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
-
-				unitReading.rssi = rs.getDouble("rssi");
-				unitReading.src = rs.getInt("src");
-				unitReading.snr = rs.getDouble("snr");
-				unitReading.ber = rs.getInt("ber");
-				unitReading.rsrq = rs.getDouble("rsrq");
-				unitReading.rsrp = rs.getInt("rsrp");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
-				if (readingDateTime == null) {
-					unitReading.readingDateTime = null;
-				}
-				else {
-					java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
-					unitReading.readingDateTime = readingDateTimenInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDateTime = rs.getTimestamp("unit_readings.insertDateTime");
-				if (insertDateTime == null) {
-					unitReading.insertDateTime = null;
-				}
-				else {
-					java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
-					unitReading.insertDateTime = insertDateTimeInstant;
-				}
+				UnitReading unitReading = setUnitReadingValues(rs);
 				
 				unitReadings.add(unitReading);
 			}
@@ -473,103 +585,8 @@ public class UnitDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				UnitReading unitReading = new UnitReading();
-
-				unitReading.id = rs.getInt("unit_readings.id");
-				unitReading.serialNo = serialNo.toUpperCase();
-
-				Unit unit = new Unit();
-				unit.id  = rs.getInt("units.id");
-				unit.serialNo = rs.getString("serialNo");
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
+				UnitReading unitReading = setUnitReadingValues(rs);
 				
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				owner.email = rs.getString("users.email");
-				unit.owner = owner;
-				
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-				
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-
-				unit.reading40percent = rs.getInt("reading40percent");
-				unit.reading100percent = rs.getInt("reading100percent");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}				
-				unitReading.unit = unit;
-				
-				unitReading.msgType = rs.getInt("msgType");
-				unitReading.binLevel = rs.getInt("binLevel");
-				unitReading.binLevelBC = rs.getInt("BinLevelBC");
-				unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");
-				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
-				unitReading.temperature = rs.getInt("temperature");
-				unitReading.noCompactions = rs.getInt("noCompactions");
-				unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
-				
-				unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
-				unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
-				unitReading.batteryOverTempLO = (rs.getInt("batteryOverTempLO") == 1);
-				unitReading.binLocked = (rs.getInt("binLocked") == 1);
-				unitReading.binFull = (rs.getInt("binFull") == 1);
-				unitReading.binTilted = (rs.getInt("binTilted") == 1);
-				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
-				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
-
-				unitReading.rssi = rs.getDouble("rssi");
-				unitReading.src = rs.getInt("src");
-				unitReading.snr = rs.getDouble("snr");
-				unitReading.ber = rs.getInt("ber");
-				unitReading.rsrq = rs.getDouble("rsrq");
-				unitReading.rsrp = rs.getInt("rsrp");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
-				if (readingDateTime == null) {
-					unitReading.readingDateTime = null;
-				}
-				else {
-					java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
-					unitReading.readingDateTime = readingDateTimenInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDateTime = rs.getTimestamp("unit_readings.insertDateTime");
-				if (insertDateTime == null) {
-					unitReading.insertDateTime = null;
-				}
-				else {
-					java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
-					unitReading.insertDateTime = insertDateTimeInstant;
-				}
-
 				unitReadings.add(unitReading);
 			}
 		} catch (SQLException ex) {
@@ -602,103 +619,8 @@ public class UnitDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				UnitReading unitReading = new UnitReading();
-
-				unitReading.id = rs.getInt("unit_readings.id");
-				unitReading.serialNo = serialNo.toUpperCase();
-
-				Unit unit = new Unit();
-				unit.id  = rs.getInt("units.id");
-				unit.serialNo = rs.getString("serialNo");
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
+				UnitReading unitReading = setUnitReadingValues(rs);
 				
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				owner.email = rs.getString("users.email");
-				unit.owner = owner;
-				
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-				
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-
-				unit.reading40percent = rs.getInt("reading40percent");
-				unit.reading100percent = rs.getInt("reading100percent");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}				
-				unitReading.unit = unit;
-				
-				unitReading.msgType = rs.getInt("msgType");
-				unitReading.binLevel = rs.getInt("binLevel");
-				unitReading.binLevelBC = rs.getInt("BinLevelBC");
-				unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");
-				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
-				unitReading.temperature = rs.getInt("temperature");
-				unitReading.noCompactions = rs.getInt("noCompactions");
-				unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
-				
-				unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
-				unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
-				unitReading.batteryOverTempLO = (rs.getInt("batteryOverTempLO") == 1);
-				unitReading.binLocked = (rs.getInt("binLocked") == 1);
-				unitReading.binFull = (rs.getInt("binFull") == 1);
-				unitReading.binTilted = (rs.getInt("binTilted") == 1);
-				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
-				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
-
-				unitReading.rssi = rs.getDouble("rssi");
-				unitReading.src = rs.getInt("src");
-				unitReading.snr = rs.getDouble("snr");
-				unitReading.ber = rs.getInt("ber");
-				unitReading.rsrq = rs.getDouble("rsrq");
-				unitReading.rsrp = rs.getInt("rsrp");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
-				if (readingDateTime == null) {
-					unitReading.readingDateTime = null;
-				}
-				else {
-					java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
-					unitReading.readingDateTime = readingDateTimenInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDateTime = rs.getTimestamp("unit_readings.insertDateTime");
-				if (insertDateTime == null) {
-					unitReading.insertDateTime = null;
-				}
-				else {
-					java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
-					unitReading.insertDateTime = insertDateTimeInstant;
-				}
-
 				unitReadings.add(unitReading);
 			}
 		} catch (SQLException ex) {
@@ -769,103 +691,7 @@ public class UnitDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				UnitReading unitReading = new UnitReading();
-
-				unitReading.id = rs.getInt("latest_readings.id");
-
-				Unit unit = new Unit();
-				unit.id  = rs.getInt("units.id");
-				unit.serialNo = rs.getString("serialNo");
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
-				
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				owner.email = rs.getString("users.email");
-				unit.owner = owner;
-				
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-				
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-
-				unit.reading40percent = rs.getInt("reading40percent");
-				unit.reading100percent = rs.getInt("reading100percent");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}				
-				unitReading.unit = unit;
-				
-				unitReading.serialNo = rs.getString("serialNo");
-				unitReading.msgType = rs.getInt("msgType");
-				unitReading.binLevel = rs.getInt("binLevel");
-				unitReading.binLevelBC = rs.getInt("BinLevelBC");
-				unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");
-				unitReading.batteryVoltage = rs.getInt("batteryVoltage");
-				unitReading.temperature = rs.getInt("temperature");
-				unitReading.noCompactions = rs.getInt("noCompactions");
-				unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
-				
-				unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
-				unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
-				unitReading.batteryOverTempLO = (rs.getInt("batteryOverTempLO") == 1);
-				unitReading.binLocked = (rs.getInt("binLocked") == 1);
-				unitReading.binFull = (rs.getInt("binFull") == 1);
-				unitReading.binTilted = (rs.getInt("binTilted") == 1);
-				unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
-				unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
-
-				unitReading.rssi = rs.getDouble("rssi");
-				unitReading.src = rs.getInt("src");
-				unitReading.snr = rs.getDouble("snr");
-				unitReading.ber = rs.getInt("ber");
-				unitReading.rsrq = rs.getDouble("rsrq");
-				unitReading.rsrp = rs.getInt("rsrp");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp readingDateTime = rs.getTimestamp("readingDateTime");
-				if (readingDateTime == null) {
-					unitReading.readingDateTime = null;
-				}
-				else {
-					java.time.Instant readingDateTimenInstant = readingDateTime.toInstant();
-					unitReading.readingDateTime = readingDateTimenInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDateTime = rs.getTimestamp("latest_readings.insertDateTime");
-				if (insertDateTime == null) {
-					unitReading.insertDateTime = null;
-				}
-				else {
-					java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
-					unitReading.insertDateTime = insertDateTimeInstant;
-				}
+				UnitReading unitReading = setUnitReadingValues(rs);
 
 				unitReadings.add(unitReading);
 			}

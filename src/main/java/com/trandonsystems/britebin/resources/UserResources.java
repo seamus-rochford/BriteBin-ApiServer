@@ -384,6 +384,7 @@ public class UserResources {
 	@Path("changePassword")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
+	@JWTTokenNeeded
 	public Response changePassword(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		// This is called by the user themselves
 		try {
@@ -432,6 +433,10 @@ public class UserResources {
 				throw new Exception("No 'CONFIRM' password supplied");
 			}
 			
+			if (user.newPassword.equals(user.password)) {
+				throw new Exception("New password can NOT be the same as the old password");
+			}
+			
 			log.debug("Passwords match");
 			userServices.resetPassword(user);
 				
@@ -454,6 +459,7 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@JWTTokenNeeded
 	public Response resetPassword(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
+		// This is called by an admin user
 		try {
 			log.info("resetPassword");
 			

@@ -15,6 +15,13 @@ public class UnitReading {
 	
 	public int binLevel;		// unsigned
 	public int binLevelBC;		// unsigned
+	public boolean compactionDone;  // if incoming binLevel = 0, then no compaction done so binLevel is binLevelBC
+	
+	public int binLevelPercent;
+	public int binLevelBCPercent;
+	
+	public int binLevelStatus;
+	
 	public int noFlapOpenings;	// unsigned
 	public int batteryVoltage;	// unsigned
 	public int temperature;		// *** signed ***

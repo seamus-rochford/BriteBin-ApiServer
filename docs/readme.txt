@@ -4,4 +4,9 @@
 
 Log file can be found under tomcat logs folder
 
-/opt/tomcat/logs/britebi.log
+/opt/tomcat/logs/britebin.log
+
+
+To get the last 100 lines of the logfile
+
+tail -100 britebin.log
