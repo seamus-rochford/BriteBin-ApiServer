@@ -23,7 +23,8 @@ public class UnitReading {
 	public int binLevelStatus;
 	
 	public int noFlapOpenings;	// unsigned
-	public int batteryVoltage;	// unsigned
+	public int batteryVoltageReading;	// unsigned
+	public double batteryVoltage;
 	public int temperature;		// *** signed ***
 	public int noCompactions;	// unsigned
 	
@@ -49,5 +50,7 @@ public class UnitReading {
 	
 	public Instant readingDateTime;
 	public Instant insertDateTime;
+	
+	public String source;
 
 }

@@ -19,7 +19,6 @@ public class SigfoxServices {
 
 	public void processData(long rawDataId, SigfoxBody sigfoxData) throws Exception {
 		log.info("processData - start");
-    	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
 
 		UnitReading reading = new UnitReading();
 
@@ -38,13 +37,13 @@ public class SigfoxServices {
 		byte[] data = Hex.hexStringToByteArray(sigfoxData.data);
 		
 		reading.msgType = data[0] & 0xff;
-
+		
 		switch (reading.msgType) {
 		case 1:
 			reading.binLevelBC = data[1] & 0xff;
 			reading.binLevel = data[2] & 0xff;
 			reading.noFlapOpenings = (data[3] & 0xff) * 255 + (data[4] & 0xff);
-			reading.batteryVoltage = data[5] & 0xff;
+			reading.batteryVoltageReading = data[5] & 0xff;
 			reading.temperature = data[6];   // signed value
 			reading.noCompactions = data[7] & 0xff;
 			
@@ -68,8 +67,6 @@ public class SigfoxServices {
 
 	        reading.readingDateTime = Instant.now();
 			
-			log.info(reading);
-			
 			UnitDAL.saveReading(rawDataId, unit.id, reading);
 			
 			break;
@@ -85,8 +82,8 @@ public class SigfoxServices {
 	
 	public void saveData(String serialNo, SigfoxBody sigfoxData) throws Exception {
         try {
-        	log.debug("saveData - start");
-        	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
+//        	log.debug("saveData - start");
+//        	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
         	
 			// Save the raw data to the DB
 			long rawDataId = UnitDAL.saveRawData(gson.toJson(sigfoxData).getBytes("utf-8"));
@@ -94,7 +91,6 @@ public class SigfoxServices {
 				throw new Exception("API parameter id does NOT match body deviceId");
 			}
 			
-        	log.debug("Sigfox Data: " + gson.toJson(sigfoxData));
 			processData(rawDataId, sigfoxData);
 							
         	log.debug("saveData - end");

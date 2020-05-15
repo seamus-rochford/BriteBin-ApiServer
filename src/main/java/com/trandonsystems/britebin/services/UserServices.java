@@ -28,6 +28,16 @@ public class UserServices {
 		return UserDAL.getUsers(userFilterId);
 	}
 
+	public List<User> getPossibleParents(int userFilterId) {
+		log.info("UserService.getPossibleParents(userFilterId)");
+		return UserDAL.getPossibleParents(userFilterId);
+	}
+
+	public List<User> getPossibleBinParents(int userFilterId) {
+		log.info("UserService.getPossibleBinParents(userFilterId)");
+		return UserDAL.getPossibleBinParents(userFilterId);
+	}
+
 	public User getUser(int userFilterId, int id) {
 		log.info("UserService.getUser(userFilterId, id)");
 		return UserDAL.get(userFilterId, id);
@@ -71,7 +81,7 @@ public class UserServices {
 			user.email = dbUser.email;
 			//user.password = dbUser.password;
 			user.role = dbUser.role;
-			user.parentId = dbUser.parentId;
+			user.parent = dbUser.parent;
 			user.status = dbUser.status;
 			user.locale = dbUser.locale;
 			user.name = dbUser.name;
@@ -182,8 +192,8 @@ public class UserServices {
 	        
 	        int role = Integer.parseInt(jwtClaims.get("role").toString());
 	        log.debug("role: " + jwtClaims.get("role"));
-	        // If role is a driver use his parentId as user filter
-	        if (role == User.USER_ROLE_DRIVER) {
+	        // If role is a technician or driver use his parentId as user filter
+	        if (role == User.USER_ROLE_TECHNICIAN || role == User.USER_ROLE_DRIVER) {
 		        log.debug("UserFilterId: " + jwtClaims.get("parent"));
 	        	return Integer.parseInt(jwtClaims.get("parent").toString());
 	        }
@@ -237,6 +247,36 @@ public class UserServices {
 		}
 
 		return "";
+	}
+
+	public int getUserRoleFromJwtToken(String jwtToken) {
+		try {
+			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);
+				        
+	        log.debug("jwtClaims: " + jwtClaims);
+	        log.debug("Role: " + jwtClaims.get("role"));
+	        
+	        int role = Integer.parseInt(jwtClaims.get("role").toString());
+
+	        return role;
+		}
+		catch (ExpiredJwtException e) {
+			log.error("Token expired exception");
+		}
+		catch (UnsupportedJwtException e) {
+			log.error("Token unsupported exception");
+		}
+		catch (MalformedJwtException e) {
+			log.error("Token malformed exception");
+		}
+		catch (SignatureException e) {
+			log.error("Token signature exception");
+		}
+		catch (IllegalArgumentException e) {
+			log.error("Token illegal exception");
+		}
+
+		return -1;
 	}
 
 	public User save(User user, int actionUserId) throws SQLException {

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitReading;
@@ -12,6 +14,7 @@ import com.trandonsystems.britebin.model.UnitReading;
 public class UnitServices {
 
 	static Logger log = Logger.getLogger(UnitServices.class);
+	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	public Unit getUnit(int userFilterId, int id) {
 		log.info("UnitServices.getUnit(userFilterId, id)");
@@ -32,6 +35,21 @@ public class UnitServices {
 		log.info("UnitService.save");
 		
 		return UnitDAL.save(unit, actionUserId);
+	}
+	
+	public Unit install(Unit unit, int actionUserId) throws SQLException {
+		log.info("UnitService.install");
+		
+		// Get the unit details form the DB
+		Unit dbUnit = UnitDAL.getUnit(actionUserId, unit.serialNo);
+		log.info("dbUnit: " + gson.toJson(dbUnit));
+
+		dbUnit.latitude = unit.latitude;
+		dbUnit.longitude = unit.longitude;
+		dbUnit.location = unit.location;
+		
+		// Update the unit latitude and longitude and location
+		return UnitDAL.install(dbUnit, actionUserId);
 	}
 	
 	public List<UnitReading> getUnitReadings(int userFilterId, int id, int limit) {

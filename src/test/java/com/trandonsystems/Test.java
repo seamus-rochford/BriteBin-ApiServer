@@ -3,12 +3,18 @@ package com.trandonsystems;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JsonWebToken;
+import com.trandonsystems.britebin.database.SystemDAL;
 import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.database.UserDAL;
 import com.trandonsystems.britebin.database.Util;
+import com.trandonsystems.britebin.model.Alert;
+import com.trandonsystems.britebin.model.KeyValue;
 import com.trandonsystems.britebin.model.SigfoxBody;
+import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.model.User;
+import com.trandonsystems.britebin.resources.SystemResources;
+import com.trandonsystems.britebin.services.AlertServices;
 import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
@@ -187,7 +193,7 @@ public class Test {
 		sigfoxData.rssi = "123";
 		sigfoxData.snr = "11";
 //		data.payload = "01284800554466345A760000";
-		sigfoxData.data = "01150000007e1b0000000000";
+		sigfoxData.data = "019A0000007e1b00FF000000";
 		
 		String dataStr = gson.toJson(sigfoxData.data);
 		
@@ -196,6 +202,22 @@ public class Test {
 		try {	
 			SigfoxServices ss = new SigfoxServices();
 			ss.saveData("X1Y2Z3W4", sigfoxData);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+	}
+	
+	private static void testInstallUnit() {
+
+		Unit unit = new Unit();
+		unit.serialNo = "X1Y2Z3W4";
+		unit.latitude = 1234.56;
+		unit.longitude = 678.34;
+		unit.location = "somewhere";
+		
+		try {	
+			UnitServices us = new UnitServices();
+			us.install(unit, 5);
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
 		}
@@ -217,11 +239,21 @@ public class Test {
 		}
 	}
 	
+	private static void testAlertService() {
+		
+		AlertServices as = new AlertServices();
+		
+		List<Alert> list = as.getAdminAlerts(22);
+		
+		System.out.println(gson.toJson(list));
+	}
+	
 	public static void main(String[] args) {
 
-		testSaveUser();
 		
-//		testSaveData();
+//		testAlertService();
+		
+		testSaveData();
 		
 //		testLogging();
 		

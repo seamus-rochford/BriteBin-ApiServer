@@ -9,17 +9,17 @@ public class User {
 	public static int USER_STATUS_ACTIVE = 1;
 
 	public static int USER_ROLE_ADMIN = 0;
-	public static int USER_ROLE_MUNICIPAL = 1;
-	public static int USER_ROLE_SUB_MUNICIPAL = 2;
+	public static int USER_ROLE_DISTRIBUTER = 1;
+	public static int USER_ROLE_CORPORATE = 2;
 	public static int USER_ROLE_CUSTOMER = 3;
-	public static int USER_ROLE_DRIVER = 4;
+	public static int USER_ROLE_TECHNICIAN = 4;
+	public static int USER_ROLE_DRIVER = 5;
 	
 	public int id;
 	public String email;
 	public String password;
 	public Role role;  
-	public int parentId;  
-	public String parentName;
+	public User parent;
 	public Status status;  // -1 = inactive, 0 - registered, 1 -  active
 	public Locale locale;
 	public String name;

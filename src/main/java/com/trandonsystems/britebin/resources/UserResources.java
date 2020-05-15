@@ -3,6 +3,8 @@ package com.trandonsystems.britebin.resources;
 import java.util.List;
 
 import javax.json.Json;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -117,12 +119,77 @@ public class UserResources {
 					.build();
 		}
 	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getPossibleParents")
+	@JWTTokenNeeded
+	public Response getPossibleParents(@Context HttpHeaders httpHeader) {
+		log.debug("getPossibleParents");
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+	
+			List<User>users = userServices.getPossibleParents(userFilterId);
+			
+			log.debug("No. Users: " + users.size());
+			return Response.status(Response.Status.OK) // 200 
+				.entity(users)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getPossibleBinParents")
+	@JWTTokenNeeded
+	public Response getPossibleBinParents(@Context HttpHeaders httpHeader) {
+		log.debug("getPossibleBinParents");
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+	
+			List<User>users = userServices.getPossibleBinParents(userFilterId);
+			
+			log.debug("No. Users: " + users.size());
+			return Response.status(Response.Status.OK) // 200 
+				.entity(users)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}
+	}
+
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("login")
-	public Response login(User user) {
+	public Response login(@Context HttpServletRequest request, User user) {
 		try {
 			log.info("POST: Login user");
 			log.info("User: " + user.email);
@@ -143,6 +210,12 @@ public class UserResources {
 				String token = JsonWebToken.createJWT(user);
 				// Clear the password so that it is NOT sent back
 				user.password = null;
+				
+				// Testing using SessionId for identifying userIds going forward
+//				HttpSession session = request.getSession(true);
+//				
+//				log.info("Session Object: ");
+//				log.info(gson.toJson(session));
 				
 				if (user.status.id == User.USER_STATUS_ACTIVE) {
 					
@@ -187,7 +260,7 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("verifyToken")
 	@JWTTokenNeeded
-	public Response verifyToken(@Context HttpHeaders httpHeader) {
+	public Response verifyToken(@Context HttpServletRequest request, @Context HttpHeaders httpHeader) {
 		try {
 			log.info("POST: verifyToken");
 
@@ -204,6 +277,11 @@ public class UserResources {
 			String jwtToken = authorization.substring(7);
 			log.debug("Token verified");
 				
+//			HttpSession session = request.getSession(false);
+//			
+//			log.info("Session Object: ");
+//			log.info(gson.toJson(session));
+
 			// Get new jwtToken
 			String newToken = JsonWebToken.verify(jwtToken);
 			String json = Json.createObjectBuilder()

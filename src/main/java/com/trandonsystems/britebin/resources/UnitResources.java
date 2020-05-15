@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitReading;
@@ -106,7 +107,7 @@ public class UnitResources {
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
 	
-			// Get userId from JwtToken
+			// Get userId from JwtToken (Note: if the role is driver or technician it will return the parentId)
 			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 			
 			// All units for this user
@@ -131,9 +132,12 @@ public class UnitResources {
 	@Path("save")
 	@JWTTokenNeeded
 	public Response save(@Context HttpHeaders httpHeader, Unit unit) {
+		String serialNo = "";
 		try {
 			log.info("POST: save unit");
-			log.info("User: " + gson.toJson(unit));
+			log.info("Unit: " + gson.toJson(unit));
+			
+			serialNo = unit.serialNo;
 			
 			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
 			
@@ -146,11 +150,66 @@ public class UnitResources {
 			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 
 			unit = unitServices.save(unit, actionUserId);
-			log.info("Saved user: " + gson.toJson(unit));
-
+			log.info("Saved unit: " + gson.toJson(unit));
 
 			String json = Json.createObjectBuilder()
-									.add("user", gson.toJson(unit))
+									.add("unit", gson.toJson(unit))
+									.build()
+									.toString();
+			
+			return Response.status(Response.Status.OK) // 200 
+					.entity(json)
+					.build();
+		
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+
+			String errorMsg = "";
+			if (ex.getMessage().contains("Duplicate")) {
+				errorMsg = "This serialNo is already in use.";
+			} else {
+				errorMsg = ex.getMessage();
+			}
+			
+			String json = Json.createObjectBuilder()
+					.add("serialNo", serialNo)
+					.add("message", errorMsg)
+					.build()
+					.toString();
+			
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity(json)
+					.build();
+		}
+	}
+
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("install")
+	@JWTTokenNeeded
+	public Response install(@Context HttpHeaders httpHeader, Unit unit) {
+		try {
+			log.info("POST: install unit");
+			log.info("User: " + gson.toJson(unit));
+			
+			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+
+			unit = unitServices.install(unit, actionUserId);
+			log.info("Saved unit: " + gson.toJson(unit));
+
+			String json = Json.createObjectBuilder()
+									.add("unit", gson.toJson(unit))
 									.build()
 									.toString();
 			

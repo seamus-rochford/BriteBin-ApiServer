@@ -26,12 +26,14 @@ public class UnitDAL {
 	static Logger log = Logger.getLogger(UnitDAL.class);
 	static ConfigurablePasswordEncryptor passwordEncryptor = new ConfigurablePasswordEncryptor();
 
-	static int DATA_SOURCE = 3;  // BriteBin - Sigfox
+	static final String SOURCE = "Sigfox";   // Saving Readings
+	
 	
 	public UnitDAL() {
 		log.trace("Constructor");
 	}
 
+	
 	public static Unit getUnit(int userFilterId, int id) {
 
 		log.info("UnitDAL.getUnit(userFilterId, id)");
@@ -128,6 +130,7 @@ public class UnitDAL {
 		return unit;
 	}
 
+	
 	public static Unit getUnit(int userFilterId, String serialNo) {
 
 		log.info("UnitDAL.getUnit(userFilterId, serialNo)");
@@ -223,6 +226,7 @@ public class UnitDAL {
 		return unit;
 	}
 
+	
 	public static List<Unit> getUnits(int userFilterId) {
 		// Return all units based on "parentId" hierarchy
 		
@@ -322,6 +326,7 @@ public class UnitDAL {
 		return units;
 	}
 	
+	
 	private static int computePercentageTekelek(int binType, int value) {
 		int result = 0;
 		
@@ -343,18 +348,25 @@ public class UnitDAL {
 
 		log.debug("computePercentageTekelek - Value: " + value + "    Percentage: " + result + " %");
 		
+		// Negative readings are wrong so for readability, we will display them as 0 %
+		if (result < 0) {
+			result = 0;
+		}
+		
 		return result;
 	}
+	
 	
 	private static int computePercentagePelBin(int binType, int value) {
 		int result = 0;
 		
 		double readingZeropercent = 0;
+		double reading40percent = 0;
 		double reading50percent = 0;
 		double reading100percent = 0;
 		
 		if (binType == 1) {
-			// Model 120
+			// Model 120 - uses reading at 50% to interpolate readings above and below 50%
 			readingZeropercent = 156;
 			reading50percent = 53;
 			reading100percent = 29;
@@ -365,22 +377,28 @@ public class UnitDAL {
 				result = (int)Math.round(50 * (value - reading100percent) / (reading50percent - reading100percent));
 			}
 		} else {
-			// Model 240, Model 360
+			// Model 240, Model 360  - uses reading at 40% to interpolate readings above and below 40%
 			readingZeropercent = 140;
-			reading50percent = 42;
+			reading40percent = 42;
 			reading100percent = 21;
 
-			if (value >= reading50percent) {
-				result = (int)Math.round(50 * (value - reading50percent) / (readingZeropercent - reading50percent)) + 50;
+			if (value >= reading40percent) {
+				result = (int)Math.round(60 * (value - reading40percent) / (readingZeropercent - reading50percent)) + 40;
 			} else {
-				result = (int)Math.round(50 * (value - reading100percent) / (reading50percent - reading100percent));
+				result = (int)Math.round(40 * (value - reading100percent) / (reading40percent - reading100percent));
 			}
 		}
 
 		log.debug("computePercentagePelBin - Value: " + value + "    Percentage: " + result + " %");
+
+		// Negative readings are wrong so for readability, we will display them as 0 %
+		if (result < 0) {
+			result = 0;
+		}
 		
 		return result;
 	}
+	
 	
 	public static UnitReading setUnitReadingValues(ResultSet rs) throws SQLException {
 		UnitReading unitReading = new UnitReading();
@@ -420,9 +438,6 @@ public class UnitDAL {
 		unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
 		unit.emptyLevel = rs.getInt("emptyLevel");
 		unit.fullLevel = rs.getInt("fullLevel");
-
-		unit.reading40percent = rs.getInt("reading40percent");
-		unit.reading100percent = rs.getInt("reading100percent");
 		
 		// Convert database timestamp(UTC date) to local time instant
 		Timestamp lastActivity = rs.getTimestamp("lastActivity");
@@ -448,7 +463,7 @@ public class UnitDAL {
 		}
 		
 		unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");
-		unitReading.batteryVoltage = rs.getInt("batteryVoltage");
+		unitReading.batteryVoltageReading = rs.getInt("batteryVoltage");
 		unitReading.temperature = rs.getInt("temperature");
 		unitReading.noCompactions = rs.getInt("noCompactions");
 		unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
@@ -488,6 +503,10 @@ public class UnitDAL {
 			java.time.Instant insertDateTimeInstant = insertDateTime.toInstant();
 			unitReading.insertDateTime = insertDateTimeInstant;
 		}
+		unitReading.source = rs.getString("unit_readings.source");
+		
+		// Convert battery voltage reading to voltage voltage = reading * 0.05 + 7
+		unitReading.batteryVoltage = unitReading.batteryVoltageReading * 0.05 + 7;
 		
 		// Compute Percentages
 		if (unit.deviceType.id == 1) {
@@ -528,6 +547,7 @@ public class UnitDAL {
 		return unitReading;
 	}
 	
+	
 	public static List<UnitReading> getUnitReadings(int userFilterId, int unitId, int limit) {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
@@ -562,6 +582,7 @@ public class UnitDAL {
 		return unitReadings;
 	}
 
+	
 	public static List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) {
 
 		log.info("UnitDAL.getUnitReadings(userFilterId, serialNo, limit)");
@@ -596,6 +617,7 @@ public class UnitDAL {
 		return unitReadings;
 	}
 
+	
 	// This one is for engineering testing only
 	public static List<UnitReading> getUnitReadingsTest(String serialNo, int limit) {
 
@@ -630,6 +652,7 @@ public class UnitDAL {
 		return unitReadings;
 	}
 
+	
 	private static void RecoverReadings(String serialNo, int unitId) throws SQLException {
 		log.info("UnitDAL.RecoverReadings(serialNo, unitId)");
 		try {
@@ -658,6 +681,7 @@ public class UnitDAL {
 
 
 	}
+	
 	
 	public static List<UnitReading> pullReadings(int userFilterId, int unitId, String serialNo) throws SQLException {
 
@@ -713,7 +737,7 @@ public class UnitDAL {
 			throw new SQLException("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call SaveRawData(?) }";
+		String spCall = "{ call SaveRawReadings(?, ?) }";
 		log.info("SP Call: " + spCall);
 
 		long id = 0;
@@ -721,6 +745,7 @@ public class UnitDAL {
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
 			spStmt.setBytes(1, data);
+			spStmt.setString(2, SOURCE);
 			ResultSet rs = spStmt.executeQuery();
 			
 			if (rs.next()) {
@@ -746,7 +771,7 @@ public class UnitDAL {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call SaveReading(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		String spCall = "{ call SaveReading(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
@@ -759,7 +784,7 @@ public class UnitDAL {
 			spStmt.setInt(5, reading.binLevelBC);
 			spStmt.setInt(6, reading.binLevel);
 			spStmt.setInt(7, reading.noFlapOpenings);
-			spStmt.setInt(8, reading.batteryVoltage);
+			spStmt.setInt(8, reading.batteryVoltageReading);
 			spStmt.setInt(9, reading.temperature);
 			spStmt.setInt(10, reading.noCompactions);
 			spStmt.setInt(11, reading.batteryUVLO ? 1 : 0);
@@ -780,7 +805,9 @@ public class UnitDAL {
 			Timestamp ts = Timestamp.from(reading.readingDateTime);
 		    spStmt.setTimestamp(24, ts);
 		    
-		    spStmt.executeQuery();
+			spStmt.setString(25, SOURCE);
+
+			spStmt.executeQuery();
 
 		} catch (SQLException ex) {
 			log.error("UnitDAL.saveReading: " + ex.getMessage());
@@ -826,9 +853,9 @@ public class UnitDAL {
 		return id;
 	}
 	
-
+	
  	public static Unit save(Unit unit, int actionUserId) throws SQLException {
-		log.info("UnitDAL.save");
+		log.info("UnitDAL.save(unit, actionUserId)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -868,10 +895,57 @@ public class UnitDAL {
 			throw ex;
 		}
 		
-		log.info("UserDAL.save(user, inActionId) - end");
+		log.info("UserDAL.save(unit, actionUserId) - end");
 
 		return unit;
 		
+	}
+
+ 	
+ 	public static Unit install(Unit unit, int actionUserId) throws SQLException {
+		log.info("UnitDAL.install(unit, actionUserId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+		
+		String spCall = "{ call InstallUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setLong(1, unit.id);
+			spStmt.setInt(2, unit.owner.id);
+			spStmt.setString(3, unit.serialNo.toUpperCase());
+			spStmt.setInt(4, unit.deviceType.id);
+			spStmt.setString(5, unit.location);
+			spStmt.setDouble(6, unit.latitude);
+			spStmt.setDouble(7, unit.longitude);
+			spStmt.setInt(8, unit.binType.id);
+			spStmt.setInt(9, unit.contentType.id);
+			spStmt.setInt(10, unit.useBinTypeLevel ? 1 : 0);
+			spStmt.setInt(11, unit.emptyLevel);
+			spStmt.setInt(12, unit.fullLevel);
+			spStmt.setInt(13, actionUserId);
+		    
+			spStmt.registerOutParameter(1, Types.BIGINT);
+			
+			spStmt.executeUpdate();
+			
+			unit.id = spStmt.getInt(1);
+			
+			log.debug("userId: " + unit.id);
+			
+		} catch (SQLException ex) {
+			log.error("UserDAL.install: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UserDAL.install(unit, actionUserId) - end");
+
+		return unit;
 	}
 
 }

@@ -64,8 +64,9 @@ public class UserDAL {
 				role.name = rs.getString("ref_roles.name");
 				user.role = role;
 				
-				user.parentId = rs.getInt("parentId");
-				user.parentName = rs.getString("parentUser.name");
+				user.parent = new User();
+				user.parent.id = rs.getInt("parentId");
+				user.parent.name = rs.getString("parentUser.name");
 				
 				Status status = new Status();
 				status.id = rs.getInt("status");
@@ -180,8 +181,9 @@ public class UserDAL {
 				role.name = rs.getString("ref_roles.name");
 				user.role = role;
 				
-				user.parentId = rs.getInt("parentId");
-				user.parentName = rs.getString("parentUser.name");
+				user.parent = new  User();
+				user.parent.id = rs.getInt("parentId");
+				user.parent.name = rs.getString("parentUser.name");
 				
 				Status status = new Status();
 				status.id = rs.getInt("status");
@@ -296,8 +298,9 @@ public class UserDAL {
 				role.name = rs.getString("ref_roles.name");
 				user.role = role;
 				
-				user.parentId = rs.getInt("parentId");
-				user.parentName = rs.getString("parentUser.name");
+				user.parent = new User();
+				user.parent.id = rs.getInt("parentId");
+				user.parent.name = rs.getString("parentUser.name");
 				
 				Status status = new Status();
 				status.id = rs.getInt("status");
@@ -413,8 +416,241 @@ public class UserDAL {
 				role.name = rs.getString("ref_roles.name");
 				user.role = role;
 				
-				user.parentId = rs.getInt("parentId");
-				user.parentName = rs.getString("parentUser.name");
+				user.parent = new User();
+				user.parent.id = rs.getInt("parentId");
+				user.parent.name = rs.getString("parentUser.name");
+				
+				Status status = new Status();
+				status.id = rs.getInt("status");
+				status.name = rs.getString("ref_status.name");
+				user.status = status;
+				
+				Locale locale = new Locale();
+				locale.abbr = rs.getString("locale");
+				locale.name = rs.getString("ref_locale.name");
+				user.locale = locale;
+				
+				user.name = rs.getString("name");
+				user.addr1 = rs.getString("addr1");
+				user.addr2 = rs.getString("addr2");
+				user.city = rs.getString("city");
+				user.county = rs.getString("county");
+				user.postcode = rs.getString("postcode");
+				
+				Country country = new Country();
+				country.id = rs.getInt("country");
+				country.name = rs.getString("ref_country.name");
+				country.abbr = rs.getString("ref_country.abbr");
+				user.country = country;
+				
+				user.mobile = rs.getString("mobile");
+				user.homeTel = rs.getString("homeTel");
+				user.workTel = rs.getString("workTel");
+				
+				user.binLevelAlert = rs.getInt("binLevelAlert");
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
+				if (lastLoggedIn == null) {
+					user.lastLoggedIn = null;
+				}
+				else {
+					java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
+					user.lastLoggedIn = lastLoggedInInstant;
+				}
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp lastActivity = rs.getTimestamp("lastActivity");
+				if (lastActivity == null) {
+					user.lastActivity = null;
+				}
+				else {
+					java.time.Instant lastActivityInstant = lastActivity.toInstant();
+					user.lastActivity = lastActivityInstant;
+				}
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp insertDate = rs.getTimestamp("insertDate");
+				if (insertDate == null) {
+					user.insertDate = null;
+				}
+				else {
+					java.time.Instant insertDateInstant = insertDate.toInstant();
+					user.insertDate = insertDateInstant;
+				}
+				user.insertBy = rs.getInt("insertBy");
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
+				if (modifiedDate == null) {
+					user.modifiedDate = null;
+				}
+				else {
+					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
+					user.modifiedDate = modifiedDateInstant;
+				}
+				user.modifiedBy = rs.getInt("modifiedBy");
+
+
+				users.add(user);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return users;
+	}
+
+	public static List<User> getPossibleParents(int userFilterId) {
+
+		log.info("UserDAL.getPossibleParents(userFilterId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<User> users = new ArrayList<User>();
+
+		String spCall = "{ call GetPossibleParents(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				User user = new User();
+
+				int userId = rs.getInt("id");
+
+				Role role = new Role();
+				role.id = rs.getInt("role");
+				role.name = rs.getString("ref_roles.name");
+				user.role = role;
+
+				// Only add the main Admin users and other users
+				if ((userId == 1 && role.id == 0) || (userId != 1 && role.id > 0)) {
+					user.id = userId;
+					user.email = rs.getString("email");
+					user.password = rs.getString("password");
+					
+					Status status = new Status();
+					status.id = rs.getInt("status");
+					status.name = rs.getString("ref_status.name");
+					user.status = status;
+					
+					Locale locale = new Locale();
+					locale.abbr = rs.getString("locale");
+					locale.name = rs.getString("ref_locale.name");
+					user.locale = locale;
+					
+					user.name = rs.getString("name");
+					user.addr1 = rs.getString("addr1");
+					user.addr2 = rs.getString("addr2");
+					user.city = rs.getString("city");
+					user.county = rs.getString("county");
+					user.postcode = rs.getString("postcode");
+					
+					Country country = new Country();
+					country.id = rs.getInt("country");
+					country.name = rs.getString("ref_country.name");
+					country.abbr = rs.getString("ref_country.abbr");
+					user.country = country;
+					
+					user.mobile = rs.getString("mobile");
+					user.homeTel = rs.getString("homeTel");
+					user.workTel = rs.getString("workTel");
+					
+					user.binLevelAlert = rs.getInt("binLevelAlert");
+					
+					// Convert database timestamp(UTC date) to local time instant
+					Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
+					if (lastLoggedIn == null) {
+						user.lastLoggedIn = null;
+					}
+					else {
+						java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
+						user.lastLoggedIn = lastLoggedInInstant;
+					}
+					
+					// Convert database timestamp(UTC date) to local time instant
+					Timestamp lastActivity = rs.getTimestamp("lastActivity");
+					if (lastActivity == null) {
+						user.lastActivity = null;
+					}
+					else {
+						java.time.Instant lastActivityInstant = lastActivity.toInstant();
+						user.lastActivity = lastActivityInstant;
+					}
+					
+					// Convert database timestamp(UTC date) to local time instant
+					Timestamp insertDate = rs.getTimestamp("insertDate");
+					if (insertDate == null) {
+						user.insertDate = null;
+					}
+					else {
+						java.time.Instant insertDateInstant = insertDate.toInstant();
+						user.insertDate = insertDateInstant;
+					}
+					user.insertBy = rs.getInt("insertBy");
+					
+					// Convert database timestamp(UTC date) to local time instant
+					Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
+					if (modifiedDate == null) {
+						user.modifiedDate = null;
+					}
+					else {
+						java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
+						user.modifiedDate = modifiedDateInstant;
+					}
+					user.modifiedBy = rs.getInt("modifiedBy");
+	
+					users.add(user);
+				}
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return users;
+	}
+
+	public static List<User> getPossibleBinParents(int userFilterId) {
+
+		log.info("UserDAL.getPossibleBinParents(userFilterId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<User> users = new ArrayList<User>();
+
+		String spCall = "{ call GetPossibleBinParents(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				User user = new User();
+
+				int userId = rs.getInt("id");
+
+				user.id = userId;
+				user.email = rs.getString("email");
+				user.password = rs.getString("password");
+				
+				Role role = new Role();
+				role.id = rs.getInt("role");
+				role.name = rs.getString("ref_roles.name");
+				user.role = role;
 				
 				Status status = new Status();
 				status.id = rs.getInt("status");
@@ -820,7 +1056,7 @@ public class UserDAL {
 			spStmt.setString(2, user.email);
 			spStmt.setString(3, encryptPassword(user.password));
 			spStmt.setInt(4, user.role.id);
-			spStmt.setInt(5, user.parentId);
+			spStmt.setInt(5, user.parent.id);
 			spStmt.setInt(6, user.status.id);
 			spStmt.setString(7, user.locale.abbr);
 			spStmt.setString(8, user.name);

@@ -86,7 +86,7 @@ public class JsonWebToken {
                 .claim("name", user.name)
                 .claim("role", String.valueOf(user.role.id))
                 .claim("email", user.email)
-                .claim("parent", String.valueOf(user.parentId))
+                .claim("parent", String.valueOf(user.parent.id))
                 .claim("status", String.valueOf(user.status))
                 .claim("locale", user.locale)
                 .signWith(signatureAlgorithm, signingKey);
