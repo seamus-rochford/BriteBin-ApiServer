@@ -9,9 +9,7 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.AlertDAL;
-import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.model.Alert;
-import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.User;
 
 public class AlertServices {
@@ -74,6 +72,5 @@ public class AlertServices {
 		
 		return AlertDAL.saveAlerts(alerts, actionUserId);
 	}
-	
 	
 }

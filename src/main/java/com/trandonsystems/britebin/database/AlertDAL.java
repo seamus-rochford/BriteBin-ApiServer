@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +12,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.trandonsystems.britebin.model.Alert;
-import com.trandonsystems.britebin.model.BinLevel;
-import com.trandonsystems.britebin.model.BinType;
-import com.trandonsystems.britebin.model.ContentType;
-import com.trandonsystems.britebin.model.DeviceType;
-import com.trandonsystems.britebin.model.Unit;
-import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.model.User;
 
 public class AlertDAL {

@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
 import com.trandonsystems.britebin.model.Alert;
-import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.services.AlertServices;
 import com.trandonsystems.britebin.services.UserServices;
 

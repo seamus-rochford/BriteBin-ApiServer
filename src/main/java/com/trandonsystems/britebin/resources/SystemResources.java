@@ -7,9 +7,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -22,12 +20,8 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
-import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.KeyValue;
-import com.trandonsystems.britebin.model.Unit;
-import com.trandonsystems.britebin.services.Hex;
 import com.trandonsystems.britebin.services.SystemServices;
-import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
 
 @Path("system")
