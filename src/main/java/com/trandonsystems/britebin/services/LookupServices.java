@@ -14,7 +14,7 @@ import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
-import com.trandonsystems.britebin.model.Status;
+import com.trandonsystems.britebin.model.UserStatus;
 
 public class LookupServices {
 
@@ -57,7 +57,7 @@ public class LookupServices {
 		return LookupDAL.getRoles(locale);
 	}
 	
-	public List<Status> getStatus(String locale) {
+	public List<UserStatus> getStatus(String locale) {
 		log.info("LookupServices.getRoles(locale)");
 		return LookupDAL.getStatus(locale);
 	}

@@ -23,7 +23,7 @@ import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
-import com.trandonsystems.britebin.model.Status;
+import com.trandonsystems.britebin.model.UserStatus;
 import com.trandonsystems.britebin.services.LookupServices;
 import com.trandonsystems.britebin.services.UserServices;
 
@@ -280,7 +280,7 @@ public class LookupResources {
 	
 			String locale = userServices.getUserLocaleFromJwtToken(jwtToken);
 			
-			List<Status> status = lookupServices.getStatus(locale);
+			List<UserStatus> status = lookupServices.getStatus(locale);
 			
 			return Response.status(Response.Status.OK) // 200 
 				.entity(gson.toJson(status))

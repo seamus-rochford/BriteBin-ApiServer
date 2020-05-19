@@ -17,7 +17,7 @@ import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
-import com.trandonsystems.britebin.model.Status;
+import com.trandonsystems.britebin.model.UserStatus;
 
 public class LookupDAL {
 
@@ -272,7 +272,7 @@ public class LookupDAL {
 		return roles;
 	}
 
-	public static List<Status> getStatus(String locale) {
+	public static List<UserStatus> getStatus(String locale) {
 		
 		log.info("LookupDAL.getRoles");
 		try {
@@ -281,7 +281,7 @@ public class LookupDAL {
 			log.error("ERROR: " + ex.getMessage());
 		}
 
-		List<Status> statusList = new ArrayList<Status>();
+		List<UserStatus> statusList = new ArrayList<UserStatus>();
 
 		String spCall = "{ call GetStatus(?) }";
 		log.info("SP Call: " + spCall);
@@ -293,7 +293,7 @@ public class LookupDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				Status status = new Status();
+				UserStatus status = new UserStatus();
 
 				status.id = rs.getInt("id");
 				status.name = rs.getString("Name");

@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.jasypt.util.password.*;
 
 import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinLevel;
@@ -24,7 +23,6 @@ import com.trandonsystems.britebin.model.User;
 public class UnitDAL {
 
 	static Logger log = Logger.getLogger(UnitDAL.class);
-	static ConfigurablePasswordEncryptor passwordEncryptor = new ConfigurablePasswordEncryptor();
 
 	static final String SOURCE = "Sigfox";   // Saving Readings
 	

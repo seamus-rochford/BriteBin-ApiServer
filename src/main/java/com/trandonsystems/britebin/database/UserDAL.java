@@ -20,7 +20,7 @@ import org.jasypt.util.password.*;
 import com.trandonsystems.britebin.model.Country;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
-import com.trandonsystems.britebin.model.Status;
+import com.trandonsystems.britebin.model.UserStatus;
 import com.trandonsystems.britebin.model.User;
 
 public class UserDAL {
@@ -68,7 +68,7 @@ public class UserDAL {
 				user.parent.id = rs.getInt("parentId");
 				user.parent.name = rs.getString("parentUser.name");
 				
-				Status status = new Status();
+				UserStatus status = new UserStatus();
 				status.id = rs.getInt("status");
 				status.name = rs.getString("ref_status.name");
 				user.status = status;
@@ -185,7 +185,7 @@ public class UserDAL {
 				user.parent.id = rs.getInt("parentId");
 				user.parent.name = rs.getString("parentUser.name");
 				
-				Status status = new Status();
+				UserStatus status = new UserStatus();
 				status.id = rs.getInt("status");
 				status.name = rs.getString("ref_status.name");
 				user.status = status;
@@ -302,7 +302,7 @@ public class UserDAL {
 				user.parent.id = rs.getInt("parentId");
 				user.parent.name = rs.getString("parentUser.name");
 				
-				Status status = new Status();
+				UserStatus status = new UserStatus();
 				status.id = rs.getInt("status");
 				status.name = rs.getString("ref_status.name");
 				user.status = status;
@@ -420,7 +420,7 @@ public class UserDAL {
 				user.parent.id = rs.getInt("parentId");
 				user.parent.name = rs.getString("parentUser.name");
 				
-				Status status = new Status();
+				UserStatus status = new UserStatus();
 				status.id = rs.getInt("status");
 				status.name = rs.getString("ref_status.name");
 				user.status = status;
@@ -537,7 +537,7 @@ public class UserDAL {
 					user.email = rs.getString("email");
 					user.password = rs.getString("password");
 					
-					Status status = new Status();
+					UserStatus status = new UserStatus();
 					status.id = rs.getInt("status");
 					status.name = rs.getString("ref_status.name");
 					user.status = status;
@@ -652,7 +652,7 @@ public class UserDAL {
 				role.name = rs.getString("ref_roles.name");
 				user.role = role;
 				
-				Status status = new Status();
+				UserStatus status = new UserStatus();
 				status.id = rs.getInt("status");
 				status.name = rs.getString("ref_status.name");
 				user.status = status;

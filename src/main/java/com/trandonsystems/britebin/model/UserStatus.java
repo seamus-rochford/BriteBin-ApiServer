@@ -1,6 +1,6 @@
 package com.trandonsystems.britebin.model;
 
-public class Status {
+public class UserStatus {
 
 	public int id;
 	public String name;

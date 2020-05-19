@@ -20,7 +20,7 @@ public class User {
 	public String password;
 	public Role role;  
 	public User parent;
-	public Status status;  // -1 = inactive, 0 - registered, 1 -  active
+	public UserStatus status;  // -1 = inactive, 0 - registered, 1 -  active
 	public Locale locale;
 	public String name;
 	public String addr1;
