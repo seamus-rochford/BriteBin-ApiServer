@@ -251,9 +251,9 @@ public class Test {
 	public static void main(String[] args) {
 
 		
-//		testAlertService();
+		testAlertService();
 		
-		testSaveData();
+//		testSaveData();
 		
 //		testLogging();
 		

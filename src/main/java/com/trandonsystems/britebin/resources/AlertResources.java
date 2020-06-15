@@ -106,7 +106,7 @@ public class AlertResources {
 				customerId = Integer.parseInt(queryParams.getFirst("customerId"));
 				log.debug("customerId: " + customerId);
 			} else {
-				throw new Exception("customerId required for <getAdminAlerts>");
+				throw new Exception("customerId required for <getDistributerAlerts>");
 			}
 			
 			List<Alert> alerts = new ArrayList<Alert>();			
@@ -152,7 +152,7 @@ public class AlertResources {
 				customerId = Integer.parseInt(queryParams.getFirst("customerId"));
 				log.debug("customerId: " + customerId);
 			} else {
-				throw new Exception("customerId required for <getAdminAlerts>");
+				throw new Exception("customerId required for <getTechnicianAlerts>");
 			}
 			
 			List<Alert> alerts = alertServices.getAlertsTechnicians(customerId, userRoleId);			
@@ -190,7 +190,7 @@ public class AlertResources {
 				customerId = Integer.parseInt(queryParams.getFirst("customerId"));
 				log.debug("customerId: " + customerId);
 			} else {
-				throw new Exception("customerId required for <getAdminAlerts>");
+				throw new Exception("customerId required for <getCorporateAlerts>");
 			}
 			
 			List<Alert> alerts = alertServices.getAlertsCorporate(customerId);			
@@ -228,7 +228,7 @@ public class AlertResources {
 				customerId = Integer.parseInt(queryParams.getFirst("customerId"));
 				log.debug("customerId: " + customerId);
 			} else {
-				throw new Exception("customerId required for <getAdminAlerts>");
+				throw new Exception("customerId required for <getCustomerAlerts>");
 			}
 			
 			List<Alert> alerts = alertServices.getAlertsCustomer(customerId);;			
@@ -266,7 +266,7 @@ public class AlertResources {
 				customerId = Integer.parseInt(queryParams.getFirst("customerId"));
 				log.debug("customerId: " + customerId);
 			} else {
-				throw new Exception("customerId required for <getAdminAlerts>");
+				throw new Exception("customerId required for <getDriverAlerts>");
 			}
 			
 			List<Alert> alerts = alertServices.getAlertsDrivers(customerId);
