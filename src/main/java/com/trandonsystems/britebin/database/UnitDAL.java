@@ -325,7 +325,7 @@ public class UnitDAL {
 	}
 	
 	
-	private static int computePercentageTekelek(int binType, int value) {
+	public static int computePercentageTekelek(int binType, int value) {
 		int result = 0;
 		
 		double reading40percent = 0;
@@ -349,13 +349,15 @@ public class UnitDAL {
 		// Negative readings are wrong so for readability, we will display them as 0 %
 		if (result < 0) {
 			result = 0;
+		} else if (result > 100) {
+			result = 100;
 		}
 		
 		return result;
 	}
 	
 	
-	private static int computePercentagePelBin(int binType, int value) {
+	public static int computePercentagePelBin(int binType, int value) {
 		int result = 0;
 		
 		double readingZeropercent = 0;
@@ -381,7 +383,7 @@ public class UnitDAL {
 			reading100percent = 21;
 
 			if (value >= reading40percent) {
-				result = (int)Math.round(60 * (value - reading40percent) / (readingZeropercent - reading50percent)) + 40;
+				result = (int)Math.round(60 * (value - reading40percent) / (readingZeropercent - reading40percent)) + 40;
 			} else {
 				result = (int)Math.round(40 * (value - reading100percent) / (reading40percent - reading100percent));
 			}
@@ -392,6 +394,8 @@ public class UnitDAL {
 		// Negative readings are wrong so for readability, we will display them as 0 %
 		if (result < 0) {
 			result = 0;
+		} else if (result > 100) {
+			result = 100;
 		}
 		
 		return result;
@@ -457,7 +461,7 @@ public class UnitDAL {
 			unitReading.compactionDone = false;
 			unitReading.binLevel = unitReading.binLevelBC;
 		} else {
-			unitReading.compactionDone = false;
+			unitReading.compactionDone = true;
 		}
 		
 		unitReading.noFlapOpenings = rs.getInt("noFlapOpenings");

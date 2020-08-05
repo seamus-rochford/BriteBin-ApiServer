@@ -220,6 +220,34 @@ public class UserServices {
 		return 0;
 	}
 
+	public int getUserIdFromJwtToken(String jwtToken) {
+		try {
+			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);
+
+	        log.debug("jwtClaims: " + jwtClaims);
+		
+	        log.debug("UseId: " + jwtClaims.getId());
+			return Integer.parseInt(jwtClaims.getId());
+		}
+		catch (ExpiredJwtException e) {
+			log.error("Token expired exception");
+		}
+		catch (UnsupportedJwtException e) {
+			log.error("Token unsupported exception");
+		}
+		catch (MalformedJwtException e) {
+			log.error("Token malformed exception");
+		}
+		catch (SignatureException e) {
+			log.error("Token signature exception");
+		}
+		catch (IllegalArgumentException e) {
+			log.error("Token illegal exception");
+		}
+
+		return 0;
+	}
+
 	public String getUserLocaleFromJwtToken(String jwtToken) {
 		try {
 			Claims jwtClaims = JsonWebToken.decodeJWT(jwtToken);

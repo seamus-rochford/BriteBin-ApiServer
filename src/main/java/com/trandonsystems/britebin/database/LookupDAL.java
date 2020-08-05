@@ -14,6 +14,8 @@ import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.DamageStatus;
+import com.trandonsystems.britebin.model.DamageType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
@@ -236,7 +238,6 @@ public class LookupDAL {
 		return locales;
 	}
 
-	
 	public static List<Role> getRoles(String locale) {
 		
 		log.info("LookupDAL.getRoles");
@@ -274,7 +275,7 @@ public class LookupDAL {
 
 	public static List<UserStatus> getStatus(String locale) {
 		
-		log.info("LookupDAL.getRoles");
+		log.info("LookupDAL.getStatus");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -306,5 +307,76 @@ public class LookupDAL {
 
 		return statusList;
 	}
+
+	public static List<DamageStatus> getDamageStatus(String locale) {
+		
+		log.info("LookupDAL.getDamageStatus");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<DamageStatus> damageStatusList = new ArrayList<DamageStatus>();
+
+		String spCall = "{ call GetDamageStatus(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, locale);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				DamageStatus damageStatus = new DamageStatus();
+
+				damageStatus.id = rs.getInt("id");
+				damageStatus.name = rs.getString("Name");
+
+				damageStatusList.add(damageStatus);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return damageStatusList;
+	}
+
+	public static List<DamageType> getDamageTypes(String locale) {
+		
+		log.info("LookupDAL.getDamageTypes");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<DamageType> damageTypeList = new ArrayList<DamageType>();
+
+		String spCall = "{ call GetDamageTypes(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, locale);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				DamageType damageType = new DamageType();
+
+				damageType.id = rs.getInt("id");
+				damageType.name = rs.getString("Name");
+
+				damageTypeList.add(damageType);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		return damageTypeList;
+	}
+
 
 }

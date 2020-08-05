@@ -10,3 +10,17 @@ Log file can be found under tomcat logs folder
 To get the last 100 lines of the logfile
 
 tail -100 britebin.log
+
+
+///////////////////////////////////////////////////////////////////////////
+/// DEPLOY BriteBin API Server
+/////////////////////////////////////////////////////////////////////////
+
+1.	Open browser
+2.	Navigate to server <<ipaddress>>:8080 e.g. 161.35.32.177:8080
+3.	Click Manager App button
+4.	Undeploy Britebin
+5	browse for the BriteBin war file
+6.	Upload war file
+
+

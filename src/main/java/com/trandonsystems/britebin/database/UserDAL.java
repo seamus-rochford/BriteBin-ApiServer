@@ -750,8 +750,8 @@ public class UserDAL {
 	public static boolean passwordMatch(String inputPassword, String encryptedPassword) {
 		log.info("UserDAL.passwordMatch");
 //		log.debug("inputPassword: " + inputPassword);
-//		log.debug("inputPassword.md5: " + Util.MD5(inputPassword));
-//		log.debug("DB Password: " + encryptedPassword);
+		log.debug("inputPassword.md5: " + Util.MD5(inputPassword));
+		log.debug("DB Password: " + encryptedPassword);
 		return (Util.MD5(inputPassword).equals(encryptedPassword));
 	}
 	

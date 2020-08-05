@@ -8,6 +8,7 @@ import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.database.UserDAL;
 import com.trandonsystems.britebin.database.Util;
 import com.trandonsystems.britebin.model.Alert;
+import com.trandonsystems.britebin.model.Damage;
 import com.trandonsystems.britebin.model.KeyValue;
 import com.trandonsystems.britebin.model.SigfoxBody;
 import com.trandonsystems.britebin.model.Unit;
@@ -15,6 +16,7 @@ import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.model.User;
 import com.trandonsystems.britebin.resources.SystemResources;
 import com.trandonsystems.britebin.services.AlertServices;
+import com.trandonsystems.britebin.services.DamageServices;
 import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
@@ -135,7 +137,7 @@ public class Test {
 	private static void testLogin( ) {
 		
 		User user = new User();
-		user.email = "seamus@trandonsystems.com";
+		user.email = "serochfo@gmail.com";
 		user.password = "seamus";
 		
 		int result = us.loginUser(user);
@@ -251,7 +253,102 @@ public class Test {
 	public static void main(String[] args) {
 
 		
-		testAlertService();
+		int percent = UnitDAL.computePercentagePelBin(1, 28);
+		log.info("Level 28: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 29);
+		log.info("Level 29: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 35);
+		log.info("Level 35: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 52);
+		log.info("Level 52: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 53);
+		log.info("Level 53: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 54);
+		log.info("Level 54: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 100);
+		log.info("Level 100: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 156);
+		log.info("Level 156: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(1, 160);
+		log.info("Level 160: " + percent + " %");
+
+		log.info("BinType 2 & 3:");
+		percent = UnitDAL.computePercentagePelBin(2, 145);
+		log.info("Level 145: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(2, 140);
+		log.info("Level 140: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(2, 90);
+		log.info("Level 90: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(2, 42);
+		log.info("Level 42: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(2, 30);
+		log.info("Level 30: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(2, 21);
+		log.info("Level 21: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(2, 18);
+		log.info("Level 18: " + percent + " %");
+
+		
+//		int percent = UnitDAL.computePercentageTekelek(2, 150);
+//		log.info("Level 150: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 100);
+//		log.info("Level 100: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 75);
+//		log.info("Level 75: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 73);
+//		log.info("Level 73: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 72);
+//		log.info("Level 72: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 45);
+//		log.info("Level 45: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 18);
+//		log.info("Level 18: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentageTekelek(2, 16);
+//		log.info("Level 16: " + percent + " %");
+
+		
+//		try {
+//			DamageServices damageServices = new DamageServices();
+//		
+//			Damage damage = damageServices.getDamage(15, 1);
+//			
+//			log.info("Damage: " + gson.toJson(damage));
+//			
+//			log.info("First history: " + gson.toJson(damage.damageHistory.get(0)));
+//			
+//		} catch(Exception ex) {
+//			log.error(ex.getMessage());
+//		}
+		
+		
+//		String jwtToken = "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2MyIsImlhdCI6MTU5NDA3NzI4Mywic3ViIjoidG9tLmhvc29pZW5AZW52aXJvcGFjLm5vIiwiaXNzIjoiYnJpdGViaW4uY29tIiwibmFtZSI6IkVudmlyUGFjIEdyb3VwIEVuZ2luZWVyIiwicm9sZSI6IjQiLCJlbWFpbCI6InRvbS5ob3NvaWVuQGVudmlyb3BhYy5ubyIsInBhcmVudCI6IjYxIiwic3RhdHVzIjoiY29tLnRyYW5kb25zeXN0ZW1zLmJyaXRlYmluLm1vZGVsLlVzZXJTdGF0dXNAN2Y2MmI3MWUiLCJsb2NhbGUiOnsiYWJiciI6ImVuLUlFIiwibmFtZSI6IkVuZ2xpc2ggKElyZWxhbmQpIn0sImV4cCI6MTU5NDA4NDQ4M30.oDIIw4azXJ3N7bwRwuGM3ywj_VOMYw8QZSqWkxsAGk4";
+//		log.debug("jwtToken: " + jwtToken);
+//
+//		UserServices userServices = new UserServices();
+//		int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+//		log.debug("actionUserId: " + actionUserId);
+//		testAlertService();
 		
 //		testSaveData();
 		

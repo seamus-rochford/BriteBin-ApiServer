@@ -476,7 +476,9 @@ public class UserResources {
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
 	
-			int actionUserId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			// Normally I would be getting the userFilterId but because it could be a technician or a driver logging in - we want the userId here
+			int actionUserId = userServices.getUserIdFromJwtToken(jwtToken);
+			log.debug("actionUserId: " + actionUserId);
 	
 			User user = new User();
 			if (queryParams.containsKey("userId")) {

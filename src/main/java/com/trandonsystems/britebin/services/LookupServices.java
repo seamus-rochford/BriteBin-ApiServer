@@ -11,6 +11,8 @@ import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Country;
+import com.trandonsystems.britebin.model.DamageStatus;
+import com.trandonsystems.britebin.model.DamageType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
@@ -58,8 +60,18 @@ public class LookupServices {
 	}
 	
 	public List<UserStatus> getStatus(String locale) {
-		log.info("LookupServices.getRoles(locale)");
+		log.info("LookupServices.getStatus(locale)");
 		return LookupDAL.getStatus(locale);
+	}
+	
+	public List<DamageStatus> getDamageStatus(String locale) {
+		log.info("LookupServices.getDamageStatus(locale)");
+		return LookupDAL.getDamageStatus(locale);
+	}
+	
+	public List<DamageType> getDamageTypes(String locale) {
+		log.info("LookupServices.getDamageTypes(locale)");
+		return LookupDAL.getDamageTypes(locale);
 	}
 	
 }
