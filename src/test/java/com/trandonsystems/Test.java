@@ -137,7 +137,7 @@ public class Test {
 	private static void testLogin( ) {
 		
 		User user = new User();
-		user.email = "serochfo@gmail.com";
+		user.email = "corkcc@example.com";
 		user.password = "seamus";
 		
 		int result = us.loginUser(user);
@@ -252,55 +252,56 @@ public class Test {
 	
 	public static void main(String[] args) {
 
+
 		
-		int percent = UnitDAL.computePercentagePelBin(1, 28);
-		log.info("Level 28: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 29);
-		log.info("Level 29: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 35);
-		log.info("Level 35: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 52);
-		log.info("Level 52: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 53);
-		log.info("Level 53: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 54);
-		log.info("Level 54: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 100);
-		log.info("Level 100: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 156);
-		log.info("Level 156: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(1, 160);
-		log.info("Level 160: " + percent + " %");
-
-		log.info("BinType 2 & 3:");
-		percent = UnitDAL.computePercentagePelBin(2, 145);
-		log.info("Level 145: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(2, 140);
-		log.info("Level 140: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(2, 90);
-		log.info("Level 90: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(2, 42);
-		log.info("Level 42: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(2, 30);
-		log.info("Level 30: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(2, 21);
-		log.info("Level 21: " + percent + " %");
-
-		percent = UnitDAL.computePercentagePelBin(2, 18);
-		log.info("Level 18: " + percent + " %");
+//		int percent = UnitDAL.computePercentagePelBin(1, 28);
+//		log.info("Level 28: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 29);
+//		log.info("Level 29: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 35);
+//		log.info("Level 35: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 52);
+//		log.info("Level 52: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 53);
+//		log.info("Level 53: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 54);
+//		log.info("Level 54: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 100);
+//		log.info("Level 100: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 156);
+//		log.info("Level 156: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(1, 160);
+//		log.info("Level 160: " + percent + " %");
+//
+//		log.info("BinType 2 & 3:");
+//		percent = UnitDAL.computePercentagePelBin(2, 145);
+//		log.info("Level 145: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(2, 140);
+//		log.info("Level 140: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(2, 90);
+//		log.info("Level 90: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(2, 42);
+//		log.info("Level 42: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(2, 30);
+//		log.info("Level 30: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(2, 21);
+//		log.info("Level 21: " + percent + " %");
+//
+//		percent = UnitDAL.computePercentagePelBin(2, 18);
+//		log.info("Level 18: " + percent + " %");
 
 		
 //		int percent = UnitDAL.computePercentageTekelek(2, 150);
