@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 
 import com.trandonsystems.britebin.auth.BriteBinApiKeyNeeded;
 import com.trandonsystems.britebin.model.SigfoxBody;
+import com.trandonsystems.britebin.model.UnitMessage;
+import com.trandonsystems.britebin.services.Hex;
 import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
@@ -56,10 +58,22 @@ public class SigfoxResource {
 			log.debug(gson.toJson(sigfoxBody));
 			
 			SigfoxServices sigfoxServices = new SigfoxServices();
-			sigfoxServices.saveData(id, sigfoxBody);
+			UnitMessage unitMsg = sigfoxServices.saveData(id, sigfoxBody);
 	
+			if (!unitMsg.replyMessage) {
+				return Response.status(Response.Status.NO_CONTENT)
+						.entity("Success")
+						.build();
+			}
+			
+			// Build the Sigfox return responseBody
+			String responseBody = "{ '" + unitMsg.serialNo + "': { 'downlinkData':" + Hex.ByteArrayToHex(unitMsg.message).trim() + "}}";
+			
+			// Mark message as sent
+			sigfoxServices.markMessageAsSent(unitMsg);
+			
 			return Response.status(Response.Status.OK)
-					.entity("Success")
+					.entity(responseBody)
 					.build();
 		}
 		catch(Exception ex) {

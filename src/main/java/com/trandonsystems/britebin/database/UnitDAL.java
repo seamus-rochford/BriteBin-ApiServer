@@ -7,22 +7,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import com.trandonsystems.britebin.model.ContentType;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Unit;
+import com.trandonsystems.britebin.model.UnitMessage;
 import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.model.User;
 
 public class UnitDAL {
 
 	static Logger log = Logger.getLogger(UnitDAL.class);
+	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	static final String SOURCE = "Sigfox";   // Saving Readings
 	
@@ -31,7 +38,87 @@ public class UnitDAL {
 		log.trace("Constructor");
 	}
 
+	public static Unit setUnitValues(ResultSet rs) throws SQLException {
+		Unit unit = new Unit();
+				
+		unit.id  = rs.getInt("units.id");
+
+		User owner = new User();
+		owner.id = rs.getInt("users.id");
+		owner.name = rs.getString("users.name");
+		unit.owner = owner;
+		
+		unit.serialNo = rs.getString("serialNo");
+		
+		DeviceType deviceType = new DeviceType();
+		deviceType.id = rs.getInt("ref_device_type.id");
+		deviceType.name = rs.getString("ref_device_type.name");
+		unit.deviceType = deviceType;
+		
+		unit.location = rs.getString("location");
+		unit.latitude = rs.getDouble("latitude");
+		unit.longitude = rs.getDouble("longitude");
+		
+		BinType binType = new BinType();
+		binType.id = rs.getInt("ref_bin_type.id");
+		binType.name = rs.getString("ref_bin_type.name");
+		binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
+		binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
+		unit.binType = binType;
+		
+		ContentType contentType = new ContentType();
+		contentType.id = rs.getInt("ref_content_type.id");
+		contentType.name = rs.getString("ref_content_type.name");	
+		unit.contentType = contentType;
+		
+		unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
+		unit.emptyLevel = rs.getInt("emptyLevel");
+		unit.fullLevel = rs.getInt("fullLevel");
+
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp lastActivity = rs.getTimestamp("lastActivity");
+		if (lastActivity == null) {
+			unit.lastActivity = null;
+		}
+		else {
+			java.time.Instant lastActivityInstant = lastActivity.toInstant();
+			unit.lastActivity = lastActivityInstant;
+		}
+		
+		// firmware values
+		unit.firmware = rs.getString("units.firmware");
+		unit.binTime = rs.getString("units.bintime");
+		unit.binJustOn = (rs.getInt("units.binJustOn") == 1);
+		unit.regularPeriodicReporting = (rs.getInt("units.regularPeriodicReporting") == 1);
+		unit.nbiotSimIssue = (rs.getInt("units.nbiotIssue") == 1);
+
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp insertDate = rs.getTimestamp("insertDate");
+		if (insertDate == null) {
+			unit.insertDate = null;
+		}
+		else {
+			java.time.Instant insertDateInstant = insertDate.toInstant();
+			unit.insertDate = insertDateInstant;
+		}
+		unit.insertBy = rs.getInt("insertBy");
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
+		if (modifiedDate == null) {
+			unit.modifiedDate = null;
+		}
+		else {
+			java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
+			unit.modifiedDate = modifiedDateInstant;
+		}
+		unit.modifiedBy = rs.getInt("modifiedBy");
+		
+		
+		return unit;
+	}
 	
+		
 	public static Unit getUnit(int userFilterId, int id) {
 
 		log.info("UnitDAL.getUnit(userFilterId, id)");
@@ -53,72 +140,8 @@ public class UnitDAL {
 			spStmt.setInt(2, id);
 			ResultSet rs = spStmt.executeQuery();
 
-			unit.id = id;
 			if (rs.next()) {
-
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				unit.owner = owner;
-				
-				unit.serialNo = rs.getString("serialNo");
-				
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-				
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
-				
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}
-
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					unit.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					unit.insertDate = insertDateInstant;
-				}
-				unit.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					unit.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					unit.modifiedDate = modifiedDateInstant;
-				}
-				unit.modifiedBy = rs.getInt("modifiedBy");
+				unit = setUnitValues(rs);
 			}
 
 		} catch (SQLException ex) {
@@ -150,71 +173,8 @@ public class UnitDAL {
 			spStmt.setString(2, serialNo.toUpperCase());
 			ResultSet rs = spStmt.executeQuery();
 
-			unit.serialNo = serialNo.toUpperCase();
 			if (rs.next()) {
-				unit.id = rs.getInt("id");
-
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				unit.owner = owner;
-				
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
-
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}
-
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					unit.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					unit.insertDate = insertDateInstant;
-				}
-				unit.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					unit.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					unit.modifiedDate = modifiedDateInstant;
-				}
-				unit.modifiedBy = rs.getInt("modifiedBy");
+				unit = setUnitValues(rs);
 			}
 
 		} catch (SQLException ex) {
@@ -247,73 +207,7 @@ public class UnitDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				Unit unit = new Unit();
-
-				unit.id = rs.getInt("id");
-
-				User owner = new User();
-				owner.id = rs.getInt("users.id");
-				owner.name = rs.getString("users.name");
-				unit.owner = owner;
-				
-				unit.serialNo = rs.getString("serialNo");
-
-				DeviceType deviceType = new DeviceType();
-				deviceType.id = rs.getInt("ref_device_type.id");
-				deviceType.name = rs.getString("ref_device_type.name");
-				unit.deviceType = deviceType;
-
-				unit.location = rs.getString("location");
-				unit.latitude = rs.getDouble("latitude");
-				unit.longitude = rs.getDouble("longitude");
-
-				BinType binType = new BinType();
-				binType.id = rs.getInt("ref_bin_type.id");
-				binType.name = rs.getString("ref_bin_type.name");
-				binType.emptyLevel = rs.getInt("ref_bin_type.emptyLevel");
-				binType.fullLevel = rs.getInt("ref_bin_type.fullLevel");
-				unit.binType = binType;
-				
-				ContentType contentType = new ContentType();
-				contentType.id = rs.getInt("ref_content_type.id");
-				contentType.name = rs.getString("ref_content_type.name");	
-				unit.contentType = contentType;
-				
-				unit.useBinTypeLevel = (rs.getInt("useBinTypeLevel") == 1);
-				unit.emptyLevel = rs.getInt("emptyLevel");
-				unit.fullLevel = rs.getInt("fullLevel");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					unit.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					unit.lastActivity = lastActivityInstant;
-				}
-
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					unit.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					unit.insertDate = insertDateInstant;
-				}
-				unit.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					unit.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					unit.modifiedDate = modifiedDateInstant;
-				}
-				unit.modifiedBy = rs.getInt("modifiedBy");
+				Unit unit = setUnitValues(rs);
 
 				units.add(unit);
 			}
@@ -546,6 +440,13 @@ public class UnitDAL {
 		}
 		unitReading.binLevelStatus = binLevelStatus;
 		
+		// firmware values
+		unitReading.firmware = rs.getString("unit_readings.firmware");
+		unitReading.binTime = rs.getString("unit_readings.bintime");
+		unitReading.binJustOn = (rs.getInt("unit_readings.binJustOn") == 1);
+		unitReading.regularPeriodicReporting = (rs.getInt("unit_readings.regularPeriodicReporting") == 1);
+		unitReading.nbiotSimIssue = (rs.getInt("unit_readings.nbiotIssue") == 1);
+		
 		return unitReading;
 	}
 	
@@ -762,9 +663,62 @@ public class UnitDAL {
 		log.info("UnitDAL.saveRawData(data) - end");
 		return id;
 	}	
-	
 
-	public static void saveReading(long rawDataId, long unitId, UnitReading reading) throws SQLException {
+	
+	public static UnitMessage getUnitMsg(Connection conn, String serialNo) throws SQLException {
+		log.info("UnitDAL.getUnit(conn, serialNo)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+ 
+		log.debug("SerialNo: " + serialNo);
+		String spCall = "{ call GetUnitMessage(?) }";
+		log.debug("SP Call: " + spCall);
+
+		UnitMessage unitMsg = new UnitMessage();
+		
+		try (CallableStatement spStmt = conn.prepareCall(spCall)) {
+			spStmt.setString(1, serialNo);
+			ResultSet rs = spStmt.executeQuery();
+
+			if (rs.next()) {
+				unitMsg.unitId = rs.getInt("unitId");
+				unitMsg.replyMessage = rs.getBoolean("replyMessage");
+				unitMsg.messageId = rs.getInt("messageId");
+				unitMsg.message = rs.getBytes("message");
+			}
+		} catch (SQLException ex) {
+			log.error(ex.getMessage());
+			throw ex;
+		}
+		
+		int msgType = unitMsg.message[0] & 0xff;
+		if (msgType == 4) {
+			// Get the current UTC Date/Time to set for the unit
+			
+			// Get UTC Date/Time
+			LocalDateTime now = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
+			
+			byte[] msg = new byte[8];
+			msg[0] = (byte)msgType;
+			msg[1] = (byte)(now.getYear() % 100);  // Get 2 digit year part
+			msg[2] = (byte)now.getMonthValue();
+			msg[3] = (byte)now.getDayOfMonth();
+			msg[4] = (byte)now.getHour();
+			msg[5] = (byte)now.getMinute();
+			msg[6] = (byte)now.getSecond();
+			msg[7] = unitMsg.message[7];
+			
+			unitMsg.message = msg;
+		}
+
+		return unitMsg;
+	}	
+
+	
+	public static UnitMessage saveReading(long rawDataId, long unitId, UnitReading reading) throws SQLException {
 
 		log.info("UnitDAL.saveReading(rawDataId, unitId, reading)");
 		try {
@@ -773,11 +727,16 @@ public class UnitDAL {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call SaveReading(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		UnitMessage unitMsg = new UnitMessage();
+		
+		String spCall = "{ call SaveReading(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			unitMsg = getUnitMsg(conn, reading.serialNo);
+			log.debug("unitMsg: " + gson.toJson(unitMsg));		
 
 			spStmt.setLong(1, unitId);
 			spStmt.setString(2, reading.serialNo.toUpperCase());
@@ -809,6 +768,12 @@ public class UnitDAL {
 		    
 			spStmt.setString(25, SOURCE);
 
+			spStmt.setString(26, reading.firmware);
+			spStmt.setString(27, reading.binTime);
+			spStmt.setInt(28, reading.binJustOn ? 1 : 0);
+			spStmt.setInt(29, reading.regularPeriodicReporting ? 1 : 0);
+			spStmt.setInt(30, reading.nbiotSimIssue ? 1 : 0);
+			
 			spStmt.executeQuery();
 
 		} catch (SQLException ex) {
@@ -818,7 +783,49 @@ public class UnitDAL {
 		
 		log.info("UnitDAL.saveReading(rawDataId, unitId, reading) - end");
 
-		return;
+		return unitMsg;
+	}
+	
+	
+	public static UnitMessage saveReadingFirmware(long rawDataId, long unitId, UnitReading reading) throws SQLException {
+
+		log.info("UnitDAL.saveReadingFirmware(rawDataId, unitId, reading)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		UnitMessage unitMsg = new UnitMessage();
+		
+		String spCall = "{ call saveReadingFirmware(?, ?, ?, ?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			unitMsg = getUnitMsg(conn, reading.serialNo);
+			log.debug("unitMsg: " + gson.toJson(unitMsg));		
+
+			spStmt.setLong(1, unitId);
+			spStmt.setLong(2, rawDataId);
+			spStmt.setString(3, reading.firmware);
+			spStmt.setString(4, reading.binTime);
+			spStmt.setInt(5, reading.binJustOn ? 1 : 0);
+			spStmt.setInt(6, reading.regularPeriodicReporting ? 1 : 0);
+			spStmt.setInt(7, reading.nbiotSimIssue ? 1 : 0);
+			spStmt.setString(8, SOURCE);
+
+			spStmt.executeQuery();
+
+		} catch (SQLException ex) {
+			log.error("UnitDAL.saveReadingFirmware: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UnitDAL.saveReadingFirmware(rawDataId, unitId, reading) - end");
+
+		return unitMsg;
 	}
 	
 	
@@ -855,6 +862,30 @@ public class UnitDAL {
 		return id;
 	}
 	
+
+	public static void markMessageAsSent(UnitMessage unitMsg) throws SQLException{
+
+		log.info("UnitDAL.markMessageAsSent(unitMsg)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call MarkMessageAsSent(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, unitMsg.messageId);
+			spStmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			log.error("UnitDAL.getUnit" + ex.getMessage());
+			throw ex;
+		}
+	}
 	
  	public static Unit save(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitDAL.save(unit, actionUserId)");

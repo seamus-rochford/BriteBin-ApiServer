@@ -52,5 +52,15 @@ public class UnitReading {
 	public Instant insertDateTime;
 	
 	public String source;
+	
+	// These are message type 5 values
+	public String firmware;
+	public String binTime;
+	
+	// flags
+	public boolean binJustOn;
+	public boolean regularPeriodicReporting;
+	public boolean nbiotSimIssue;
+		
 
 }

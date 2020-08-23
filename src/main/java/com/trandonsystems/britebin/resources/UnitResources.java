@@ -367,6 +367,81 @@ public class UnitResources {
 		}	
 	}
 	
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("saveDeviceMessage")
+	@JWTTokenNeeded
+	public Response saveDeviceMessage(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		try {
+			
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+						
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int userId = userServices.getUserIdFromJwtToken(jwtToken);
+			
+			int unitId = 0;
+			if (queryParams.containsKey("serialNo")) {
+				String serialNo = queryParams.getFirst("serialNo");
+				log.debug("serialNo: " + serialNo);
+				
+				// Pass 1 as unit filter id so all units are available
+				Unit unit = unitServices.getUnit(1, serialNo);
+				unitId = unit.id;
+				log.debug("unitId: " + unitId);
+			} else if (queryParams.containsKey("unitId")) {
+				unitId = Integer.parseInt(queryParams.getFirst("unitId"));
+				log.debug("unitId: " + unitId);
+			} else {
+				return Response.status(Response.Status.BAD_REQUEST) // 400 
+						.entity("parameter <unitId> missing")
+						.build();
+			}
+
+			String msg = "";
+			if (queryParams.containsKey("msg")) {
+				msg = queryParams.getFirst("msg");
+				log.debug("serialNo: " + msg);
+			} else {
+				return Response.status(Response.Status.BAD_REQUEST) // 400 
+						.entity("parameter <msg> missing")
+						.build();
+			}			
+
+			if (msg.length() > 16) {
+				// msg can be maximum 8 bytes (16 hex characters)
+				return Response.status(Response.Status.BAD_REQUEST) // 400 
+						.entity("<msg> too long - max. 8 bytes (16 hex charcaters)")
+						.build();				
+			}
+			
+			byte[] data = Hex.hexStringToByteArray(msg);
+			
+			if((data[7] & 0x01) == 1 && (data[7] & 0x02) == 2) {
+				// Can NOT have "Lock Bin" and "Unlock Bin" set at the same time
+				return Response.status(Response.Status.BAD_REQUEST) // 400 
+						.entity("<msg> byte 8 - has 'Lock Bin' and 'Unlock Bin' flags both set - these are mutually exclusive flags")
+						.build();	
+			}
+
+			unitServices.saveMessage(unitId, data, userId);
+	
+			return Response.status(Response.Status.OK).entity("Success").build();
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();
+		}
+	}	
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// These ones were created for engineers testing units
@@ -402,7 +477,7 @@ public class UnitResources {
 
 			unitServices.saveMessage(unitId, data, userId);
 	
-			return Response.status(Response.Status.OK).build();
+			return Response.status(Response.Status.OK).entity("Success").build();
 		}
 		catch(Exception ex) {
 			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());

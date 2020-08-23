@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import javax.json.Json;
+
 import org.apache.log4j.Logger;
 
 
@@ -250,9 +252,26 @@ public class Test {
 		System.out.println(gson.toJson(list));
 	}
 	
+	private static String BuildJson() {
+		String innerJson = Json.createObjectBuilder()
+				.add("downlinkData", "ABCDEF01")
+				.build()
+				.toString();
+		
+		String json = Json.createObjectBuilder()
+				.add("deviceId", innerJson)
+				.build()
+				.toString();	
+		
+		json = "{'deviceId': {'downlinkData':'ABABABAB'}}";
+		
+		return json;
+	}
+	
 	public static void main(String[] args) {
 
-
+		String msg = BuildJson();
+		System.out.println(msg);
 		
 //		int percent = UnitDAL.computePercentagePelBin(1, 28);
 //		log.info("Level 28: " + percent + " %");

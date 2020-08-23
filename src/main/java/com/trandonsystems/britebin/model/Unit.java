@@ -18,6 +18,16 @@ public class Unit {
 	public int fullLevel;
 	public Instant lastActivity;
 
+	// firmware values
+	public String firmware;
+	public String binTime;
+	
+	// flags
+	public boolean binJustOn;
+	public boolean regularPeriodicReporting;
+	public boolean nbiotSimIssue;
+	
+	// Control values
 	public Instant insertDate;
 	public int insertBy;
 	public Instant modifiedDate;
