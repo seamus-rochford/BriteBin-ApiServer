@@ -1,0 +1,18 @@
+Kindly note that we have created new API  VIBER and SMS demo test account in our system, according to your requirements.
+
+Please use our User Integration Manual (attached), for support during connection.
+
+Here are the connection details:
+
+username: demo7777n
+
+password: ?7&mNbq6
+
+URL: http://multi.mobile-gw.com:9000/v1/omni/message
+
+Viber Sender: SMSInfo
+
+Destination: Ireland, Croatia and Norway
+
+Credits: 30
+

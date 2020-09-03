@@ -1,5 +1,6 @@
 package com.trandonsystems.britebin.resources;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,9 +24,12 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
+import com.trandonsystems.britebin.model.RawData;
+import com.trandonsystems.britebin.model.SigfoxBody;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.services.Hex;
+import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;;
 
@@ -335,7 +339,69 @@ public class UnitResources {
 		}	
 	}
 	
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+	@Path("processUnprocessedData")
+	@JWTTokenNeeded
+    public Response processUnprocessedData() {
+    	try {		
+    		log.info("processUnprocessedData - start");
+    		
+			SigfoxServices sigfoxServices = new SigfoxServices();
+			UnitServices unitServices = new UnitServices();
 
+			// Process Sigfox RawData
+			String source = "Sigfox";
+			List<RawData> readings = unitServices.getUnprocessedRawData(source);
+    		log.info("processUnprocessedData - " + readings.size() + " Sigfox readings to process");
+    		for (int i = 0; i < readings.size(); i++) {
+    			int rawDataId = readings.get(i).id;
+    			Instant readingDateTime = readings.get(i).insertAt;
+    			
+    			String sigfoxStr = new String(readings.get(i).rawData, "UTF-8");
+    			SigfoxBody sigfoxBody = gson.fromJson(sigfoxStr, SigfoxBody.class);
+    			
+    			sigfoxServices.saveRawDataOnly(rawDataId, readingDateTime, sigfoxBody);
+    		}
+
+    		// Process NB-IoT BriteBin RawData
+    		source = "NB-IoT BB";
+    		readings = unitServices.getUnprocessedRawData(source);
+    		log.info("processUnprocessedData - " + readings.size() + " NB-IoT BB readings to process");
+    		for (int i = 0; i < readings.size(); i++) {
+    			int rawDataId = readings.get(i).id;
+    			Instant readingDateTime = readings.get(i).insertAt;
+    			byte[] reading = readings.get(i).rawData;
+    			
+    			unitServices.processBriteBinDataOnly(source, rawDataId, readingDateTime, reading);
+    		}
+    		
+    		// Process NB-IoT Tekelek RawData
+    		source = "NB-IoT Tek";
+    		readings = unitServices.getUnprocessedRawData(source);
+    		log.info("processUnprocessedData - " + readings.size() + " NB-IoT Tek readings to process");
+    		for (int i = 0; i < readings.size(); i++) {
+    			int rawDataId = readings.get(i).id;
+    			Instant readingDateTime = readings.get(i).insertAt;
+    			byte[] reading = readings.get(i).rawData;
+    			
+    			unitServices.processTekelekDataOnly(source, rawDataId, readingDateTime, reading);
+    		}
+    		
+    		log.info("processUnprocessedData - end");
+
+    		return Response.status(Response.Status.OK)
+					.entity("Success")
+					.build();    		
+    	} catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity("Error: " + ex.getMessage())
+					.build();    		
+    	}
+    }
+    
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getLatestReadings")

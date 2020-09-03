@@ -10,6 +10,7 @@ import com.trandonsystems.britebin.database.Util;
 import com.trandonsystems.britebin.model.Alert;
 import com.trandonsystems.britebin.model.Damage;
 import com.trandonsystems.britebin.model.KeyValue;
+import com.trandonsystems.britebin.model.RawData;
 import com.trandonsystems.britebin.model.SigfoxBody;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitReading;
@@ -29,16 +30,34 @@ import io.jsonwebtoken.UnsupportedJwtException;
 
 import org.jasypt.util.password.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.Base64;
+
 
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 
@@ -268,10 +287,160 @@ public class Test {
 		return json;
 	}
 	
+	private static void processRawData() {
+		UnitServices unitServices = new UnitServices();
+		SigfoxServices sigfoxServices = new SigfoxServices();
+		
+		String source = ""; 
+		List<RawData> readings = new ArrayList<RawData>();
+		
+		try {
+			source = "Sigfox";
+//    		readings = unitServices.getUnprocessedRawData(source);
+    		
+//    		for (int i = 0; i < readings.size(); i++) {
+//    			int rawDataId = readings.get(i).id;
+//    			Instant readingDateTime = readings.get(i).insertAt;
+//    			
+//    			String sigfoxStr = new String(readings.get(i).rawData, "UTF-8");
+//    			SigfoxBody sigfoxBody = gson.fromJson(sigfoxStr, SigfoxBody.class);
+//
+//    			sigfoxServices.saveRawDataOnly(rawDataId, readingDateTime, sigfoxBody);
+//    		}
+			
+			source = "NB-IoT BB";
+			readings = unitServices.getUnprocessedRawData(source);
+			log.info(gson.toJson(readings));
+			
+    		for (int i = 0; i < readings.size(); i++) {
+    			int rawDataId = readings.get(i).id;
+    			Instant readingDateTime = readings.get(i).insertAt;
+    			byte[] reading = readings.get(i).rawData;
+    			
+    			unitServices.processBriteBinDataOnly(source, rawDataId, readingDateTime, reading);
+    		}
+    		
+			source = "NB-IoT Tek";
+    		readings = unitServices.getUnprocessedRawData(source);
+			log.info(gson.toJson(readings));
+    		
+    		for (int i = 0; i < readings.size(); i++) {
+    			int rawDataId = readings.get(i).id;
+    			Instant readingDateTime = readings.get(i).insertAt;
+    			byte[] reading = readings.get(i).rawData;
+    			
+    			unitServices.processTekelekDataOnly(source, rawDataId, readingDateTime, reading);
+    		}    		
+			 
+		} catch (Exception ex) {
+			 log.error(ex.getMessage());
+		}
+		
+	}
+	
+	public static String getBase64(String inStr) {
+		
+		byte[] bytesEncoded = inStr.getBytes(StandardCharsets.UTF_8);
+		
+		String base64 = new String(Base64.getEncoder().encodeToString(bytesEncoded));
+		
+		return base64;
+	}
+	
+	public static void testInstantDiff() {
+		int hour = 20;
+		int minute = 30;
+		int second = 48;
+		
+		Instant now = Instant.now();
+		System.out.println(now);
+		
+		Instant unitTime = now.atZone(ZoneOffset.UTC).withHour(hour).withMinute(minute).withSecond(second).toInstant();
+		System.out.println(unitTime);
+		
+		long diff = unitTime.getEpochSecond() - now.getEpochSecond();
+		System.out.println("Offset difference: " + diff);
+		
+		return;
+	}
+	
+	private static void sendSMS() {
+		
+    	PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+    	CloseableHttpClient httpClient = HttpClients.custom()
+    			.setConnectionManager(connManager)
+    			.build();
+    	
+    	String url = "http://multi.mobile-gw.com:9000/v1/omni/message";
+    	HttpPost httpPost = new HttpPost(url);
+    	httpPost.addHeader(HttpHeaders.AUTHORIZATION, "Basic ZGVtbzc3NzduOj83Jm1OYnE2");
+    	httpPost.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
+    	httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+    	
+    	JsonArray channels = Json.createArrayBuilder()
+    			.add("SMS")
+    			.build();
+    	
+    	JsonObject phoneNo = Json.createObjectBuilder()
+    			.add("phoneNumber", "35387264637")
+    			.build();
+    	JsonArray destinations = Json.createArrayBuilder()
+    			.add(phoneNo)
+    			.build();
+    	
+    	JsonObject smsSender = Json.createObjectBuilder()
+    			.add("sender", "BriteBin")
+    			.add("text", "test message from britebin")
+    			.build();
+    	
+    	JsonObject reqBody = Json.createObjectBuilder()
+    			.add("channels", channels)
+    			.add("destination", destinations)
+    			.add("transactionId", "1782")
+    			.add("dir", true)
+    			.add("dlrUrl", "http://10.253.40.99:8080/BriteBin/api/sms")
+    			.add("tag", "bin full alert")
+    			.add("sms", smsSender)
+    			.build();
+    	System.out.println("\nRequest Body: " + reqBody.toString());
+    	
+    	httpPost.setEntity(new StringEntity(reqBody.toString(), ContentType.APPLICATION_JSON));
+    	
+//    	try {
+//    		HttpResponse response = httpClient.execute(httpPost);
+//    		
+//    		System.out.println("\nHttp Response: " + response.toString());
+//    		
+//    		int respStatus = response.getStatusLine().getStatusCode();
+//    		System.out.println("\nResponse Code: " + respStatus);
+//    		
+//    		String resultStr = EntityUtils.toString(response.getEntity());
+//    		System.out.println("\nResponse Body: " + resultStr);
+//    		
+//    	} catch (ClientProtocolException ex) {
+//    		log.error("HTTP Client Protocol Error: " + ex.getMessage());
+//    	} catch (IOException exIO) {
+//    		log.error("HTTP IO Error: " + exIO.getMessage());
+//    	} 		
+	}
+		
 	public static void main(String[] args) {
 
 		String msg = BuildJson();
 		System.out.println(msg);
+
+		String str = "demo7777n" + ":" + "?7&mNbq6";
+		String result = getBase64(str);
+		System.out.println(result);
+		
+//		sendSMS();
+		
+//		testInstantDiff();
+		
+//		String encodedBase64 = getBase64("demo7777n:?7&mNbq6");
+//		System.out.println(encodedBase64);
+		
+//		processRawData();
 		
 //		int percent = UnitDAL.computePercentagePelBin(1, 28);
 //		log.info("Level 28: " + percent + " %");

@@ -55,7 +55,7 @@ public class UnitReading {
 	
 	// These are message type 5 values
 	public String firmware;
-	public String binTime;
+	public long timeDiff;     // time difference between unit and server
 	
 	// flags
 	public boolean binJustOn;

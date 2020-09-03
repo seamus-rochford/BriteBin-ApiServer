@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.DeviceType;
+import com.trandonsystems.britebin.model.RawData;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitMessage;
 import com.trandonsystems.britebin.model.UnitReading;
@@ -31,7 +32,7 @@ public class UnitDAL {
 	static Logger log = Logger.getLogger(UnitDAL.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	static final String SOURCE = "Sigfox";   // Saving Readings
+	static final String SOURCE_SIGFOX = "Sigfox";   // Saving Readings
 	
 	
 	public UnitDAL() {
@@ -87,7 +88,7 @@ public class UnitDAL {
 		
 		// firmware values
 		unit.firmware = rs.getString("units.firmware");
-		unit.binTime = rs.getString("units.bintime");
+		unit.timeDiff = rs.getLong("units.timeDiff");
 		unit.binJustOn = (rs.getInt("units.binJustOn") == 1);
 		unit.regularPeriodicReporting = (rs.getInt("units.regularPeriodicReporting") == 1);
 		unit.nbiotSimIssue = (rs.getInt("units.nbiotIssue") == 1);
@@ -442,7 +443,7 @@ public class UnitDAL {
 		
 		// firmware values
 		unitReading.firmware = rs.getString("unit_readings.firmware");
-		unitReading.binTime = rs.getString("unit_readings.bintime");
+		unitReading.timeDiff = rs.getLong("unit_readings.timeDiff");
 		unitReading.binJustOn = (rs.getInt("unit_readings.binJustOn") == 1);
 		unitReading.regularPeriodicReporting = (rs.getInt("unit_readings.regularPeriodicReporting") == 1);
 		unitReading.nbiotSimIssue = (rs.getInt("unit_readings.nbiotIssue") == 1);
@@ -648,7 +649,7 @@ public class UnitDAL {
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
 			spStmt.setBytes(1, data);
-			spStmt.setString(2, SOURCE);
+			spStmt.setString(2, SOURCE_SIGFOX);
 			ResultSet rs = spStmt.executeQuery();
 			
 			if (rs.next()) {
@@ -664,6 +665,55 @@ public class UnitDAL {
 		return id;
 	}	
 
+	
+	// This is generic to all reading types Sigfox/NB-IoT briteBin/NB-IoT Tekelek
+	public static List<RawData> getUnprocessedRawData(String source) throws SQLException {
+		log.info("UnitDAL.getUnprocessData(" + source + ")");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+ 
+		log.debug("Source: " + source);
+		String spCall = "{ call GetUnprocessRawData(?) }";
+		log.debug("SP Call: " + spCall);
+
+		List<RawData> readings = new ArrayList<RawData>();
+		
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+			spStmt.setString(1, source);
+			ResultSet rs = spStmt.executeQuery();	
+			
+			while (rs.next()) {
+				RawData rawData = new RawData();
+
+				rawData.id = rs.getInt("id");
+				rawData.source = rs.getString("source");
+				rawData.rawData = rs.getBytes("rawData");
+				
+				// Convert database timestamp(UTC date) to local time instant
+				Timestamp insertAt = rs.getTimestamp("insertAt");
+				if (insertAt == null) {
+					rawData.insertAt = null;
+				}
+				else {
+					java.time.Instant insertAtInstant = insertAt.toInstant();
+					rawData.insertAt = insertAtInstant;
+				}	
+				
+				readings.add(rawData);
+			}
+			
+		} catch (SQLException ex) {
+			log.error(ex.getMessage());
+			throw ex;
+		}
+		
+		return readings;
+	}
+	
 	
 	public static UnitMessage getUnitMsg(Connection conn, String serialNo) throws SQLException {
 		log.info("UnitDAL.getUnit(conn, serialNo)");
@@ -694,30 +744,33 @@ public class UnitDAL {
 			throw ex;
 		}
 		
-		int msgType = unitMsg.message[0] & 0xff;
-		if (msgType == 4) {
-			// Get the current UTC Date/Time to set for the unit
-			
-			// Get UTC Date/Time
-			LocalDateTime now = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
-			
-			byte[] msg = new byte[8];
-			msg[0] = (byte)msgType;
-			msg[1] = (byte)(now.getYear() % 100);  // Get 2 digit year part
-			msg[2] = (byte)now.getMonthValue();
-			msg[3] = (byte)now.getDayOfMonth();
-			msg[4] = (byte)now.getHour();
-			msg[5] = (byte)now.getMinute();
-			msg[6] = (byte)now.getSecond();
-			msg[7] = unitMsg.message[7];
-			
-			unitMsg.message = msg;
+		if (unitMsg.message != null) {
+			int msgType = unitMsg.message[0] & 0xff;
+			if (msgType == 4) {
+				// Get the current UTC Date/Time to set for the unit
+				
+				// Get UTC Date/Time
+				LocalDateTime now = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
+				
+				byte[] msg = new byte[8];
+				msg[0] = (byte)msgType;
+				msg[1] = (byte)(now.getYear() % 100);  // Get 2 digit year part
+				msg[2] = (byte)now.getMonthValue();
+				msg[3] = (byte)now.getDayOfMonth();
+				msg[4] = (byte)now.getHour();
+				msg[5] = (byte)now.getMinute();
+				msg[6] = (byte)now.getSecond();
+				msg[7] = unitMsg.message[7];
+				
+				unitMsg.message = msg;
+			}
 		}
 
 		return unitMsg;
 	}	
 
 	
+	// This is specific to Sigfox - NB-IoT save readings are done in their own specific Listener
 	public static UnitMessage saveReading(long rawDataId, long unitId, UnitReading reading) throws SQLException {
 
 		log.info("UnitDAL.saveReading(rawDataId, unitId, reading)");
@@ -766,10 +819,10 @@ public class UnitDAL {
 			Timestamp ts = Timestamp.from(reading.readingDateTime);
 		    spStmt.setTimestamp(24, ts);
 		    
-			spStmt.setString(25, SOURCE);
+			spStmt.setString(25, SOURCE_SIGFOX);
 
 			spStmt.setString(26, reading.firmware);
-			spStmt.setString(27, reading.binTime);
+			spStmt.setLong(27, reading.timeDiff);
 			spStmt.setInt(28, reading.binJustOn ? 1 : 0);
 			spStmt.setInt(29, reading.regularPeriodicReporting ? 1 : 0);
 			spStmt.setInt(30, reading.nbiotSimIssue ? 1 : 0);
@@ -787,6 +840,74 @@ public class UnitDAL {
 	}
 	
 	
+	// This is generic to all reading types Sigfox/NB-IoT briteBin/NB-IoT Tekelek
+	public static void saveReadingOnly(String source, long rawDataId, long unitId, UnitReading reading) throws SQLException {
+		// This is similar to saveReadings but it does NOT return a msg to be sent back to the the device
+		// This routine is used to process rawData that was NOT processed already
+
+		log.info("UnitDAL.saveReading(rawDataId, unitId, reading)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call SaveReading(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {	
+
+			spStmt.setLong(1, unitId);
+			spStmt.setString(2, reading.serialNo.toUpperCase());
+			spStmt.setLong(3, rawDataId);
+			spStmt.setInt(4, reading.msgType);
+			spStmt.setInt(5, reading.binLevelBC);
+			spStmt.setInt(6, reading.binLevel);
+			spStmt.setInt(7, reading.noFlapOpenings);
+			spStmt.setInt(8, reading.batteryVoltageReading);
+			spStmt.setInt(9, reading.temperature);
+			spStmt.setInt(10, reading.noCompactions);
+			spStmt.setInt(11, reading.batteryUVLO ? 1 : 0);
+			spStmt.setInt(12, reading.binEmptiedLastPeriod ? 1 : 0);
+			spStmt.setInt(13, reading.batteryOverTempLO ? 1 : 0);
+			spStmt.setInt(14, reading.binLocked ? 1 : 0);
+			spStmt.setInt(15, reading.binFull ? 1 : 0);
+			spStmt.setInt(16, reading.binTilted ? 1 : 0);
+			spStmt.setInt(17, reading.serviceDoorOpen ? 1 : 0);
+			spStmt.setInt(18, reading.flapStuckOpen ? 1 : 0);
+			spStmt.setInt(19, reading.nbIoTSignalStrength);
+			spStmt.setDouble(20, reading.rssi);
+			spStmt.setInt(21, reading.src);
+			spStmt.setDouble(22, reading.snr);
+			spStmt.setInt(23, reading.ber);
+
+			// Convert java.time.Instant to java.sql.timestamp
+			Timestamp ts = Timestamp.from(reading.readingDateTime);
+		    spStmt.setTimestamp(24, ts);
+		    
+			spStmt.setString(25, source);
+
+			spStmt.setString(26, reading.firmware);
+			spStmt.setLong(27, reading.timeDiff);
+			spStmt.setInt(28, reading.binJustOn ? 1 : 0);
+			spStmt.setInt(29, reading.regularPeriodicReporting ? 1 : 0);
+			spStmt.setInt(30, reading.nbiotSimIssue ? 1 : 0);
+			
+			spStmt.executeQuery();
+
+		} catch (SQLException ex) {
+			log.error("UnitDAL.saveReading: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UnitDAL.saveReading(rawDataId, unitId, reading) - end");
+
+		return;
+	}
+	
+	
+	// This is specific to Sigfox
 	public static UnitMessage saveReadingFirmware(long rawDataId, long unitId, UnitReading reading) throws SQLException {
 
 		log.info("UnitDAL.saveReadingFirmware(rawDataId, unitId, reading)");
@@ -810,11 +931,11 @@ public class UnitDAL {
 			spStmt.setLong(1, unitId);
 			spStmt.setLong(2, rawDataId);
 			spStmt.setString(3, reading.firmware);
-			spStmt.setString(4, reading.binTime);
+			spStmt.setLong(4, reading.timeDiff);
 			spStmt.setInt(5, reading.binJustOn ? 1 : 0);
 			spStmt.setInt(6, reading.regularPeriodicReporting ? 1 : 0);
 			spStmt.setInt(7, reading.nbiotSimIssue ? 1 : 0);
-			spStmt.setString(8, SOURCE);
+			spStmt.setString(8, SOURCE_SIGFOX);
 
 			spStmt.executeQuery();
 
@@ -826,6 +947,46 @@ public class UnitDAL {
 		log.info("UnitDAL.saveReadingFirmware(rawDataId, unitId, reading) - end");
 
 		return unitMsg;
+	}
+	
+	
+	// This is specific to Sigfox
+	public static void saveReadingFirmwareOnly(long rawDataId, long unitId, UnitReading reading) throws SQLException {
+		// This is similar to saveReadingFirmware but it does NOT return a msg to be sent back to the the device
+		// This routine is used to process rawData that was NOT processed already
+
+		log.info("UnitDAL.saveReadingFirmwareOnly(rawDataId, unitId, reading)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call saveReadingFirmware(?, ?, ?, ?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setLong(1, unitId);
+			spStmt.setLong(2, rawDataId);
+			spStmt.setString(3, reading.firmware);
+			spStmt.setLong(4, reading.timeDiff);
+			spStmt.setInt(5, reading.binJustOn ? 1 : 0);
+			spStmt.setInt(6, reading.regularPeriodicReporting ? 1 : 0);
+			spStmt.setInt(7, reading.nbiotSimIssue ? 1 : 0);
+			spStmt.setString(8, SOURCE_SIGFOX);
+
+			spStmt.executeQuery();
+
+		} catch (SQLException ex) {
+			log.error("UnitDAL.saveReadingFirmware: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UnitDAL.saveReadingFirmware(rawDataId, unitId, reading) - end");
+
+		return;
 	}
 	
 	
@@ -886,6 +1047,7 @@ public class UnitDAL {
 			throw ex;
 		}
 	}
+	
 	
  	public static Unit save(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitDAL.save(unit, actionUserId)");

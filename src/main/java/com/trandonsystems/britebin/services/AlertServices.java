@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.AlertDAL;
 import com.trandonsystems.britebin.model.Alert;
 import com.trandonsystems.britebin.model.User;
+import com.trandonsystems.britebin.model.sms.SmsDeliveryReport;
 
 public class AlertServices {
 
@@ -61,6 +62,7 @@ public class AlertServices {
 		List<Alert> alerts = AlertDAL.getAlertsCorporateDrivers(customerId);
 		List<Alert> custDriverAlerts = AlertDAL.getAlertsCustomerDrivers(customerId);
 		
+		// Concatenate the 2 lists
 		for(int i = 0; i < custDriverAlerts.size(); i++) {
 			alerts.add(custDriverAlerts.get(i));
 		}		
