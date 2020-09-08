@@ -30,6 +30,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 
 import org.jasypt.util.password.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -40,9 +41,11 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.Base64;
-
+import java.util.Date;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -60,7 +63,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
-
 public class Test {
 
 	static ConfigurablePasswordEncryptor passwordEncryptor = new ConfigurablePasswordEncryptor();
@@ -68,6 +70,7 @@ public class Test {
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	static UserServices us = new UserServices();
+	static DamageServices damageServices = new DamageServices();
 
 	private static void testLogging() {
 		
@@ -103,7 +106,6 @@ public class Test {
 		log.info("System Env Variables: " + System.getenv());
 	}
 	
-
 	public static void testJwtToken() {
 		User user = new User();
 		user.email = "tommy@pelmfg.com";
@@ -166,7 +168,6 @@ public class Test {
 		log.info(gson.toJson(user));
 	}
 
-	
 	private static void testPasswordEncryption() {
 		// Passowrd set at the moment
 		// tommy = tommy
@@ -195,11 +196,15 @@ public class Test {
 	
 	private static void testUnitReadings() {
 		
+		try {
 		UnitServices us = new UnitServices();
 		List<UnitReading> list = us.getUnitReadings(1, "0861075021004551", -1);
 		
 		log.info("Readings: ");
 		log.info(gson.toJson(list));
+		} catch(Exception ex) {
+			log.error(ex.getMessage());
+		}
 	}
 	
 	private static String getRandomGuid() {
@@ -424,14 +429,48 @@ public class Test {
 //    	} 		
 	}
 		
+	private static void testLoadImage() {
+		
+		String uploadImageFileName = "D:\\temp\\betty_license_back.jpg";
+		
+		File file = new File("D:\\temp\\betty_license_back.jpg");
+		System.out.println("File Size : " + file.length());
+		
+		try {
+			Damage damage = damageServices.report(3, 1, "test comment", 1, true, uploadImageFileName);
+			log.info("Damage Reported: " + gson.toJson(damage));
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		
+	}
+
+	public static void testSchedulingTask() {
+	    TimerTask repeatedTask = new TimerTask() {
+	        public void run() {
+	            System.out.println("Task performed on " + new Date());
+	        }
+	    };
+	    Timer timer = new Timer("Timer");
+	    
+	    long delay = 1000L;
+	    long period = 1000L * 5L;
+	    timer.scheduleAtFixedRate(repeatedTask, delay, period);
+	}
+	
 	public static void main(String[] args) {
 
 		String msg = BuildJson();
 		System.out.println(msg);
 
-		String str = "demo7777n" + ":" + "?7&mNbq6";
-		String result = getBase64(str);
-		System.out.println(result);
+		testSchedulingTask();
+		
+		
+//		testLoadImage();
+		
+//		String str = "demo7777n" + ":" + "?7&mNbq6";
+//		String result = getBase64(str);
+//		System.out.println(result);
 		
 //		sendSMS();
 		

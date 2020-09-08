@@ -11,7 +11,6 @@ import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.AlertDAL;
 import com.trandonsystems.britebin.model.Alert;
 import com.trandonsystems.britebin.model.User;
-import com.trandonsystems.britebin.model.sms.SmsDeliveryReport;
 
 public class AlertServices {
 

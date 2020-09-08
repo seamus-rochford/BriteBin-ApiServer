@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -22,21 +23,26 @@ public class UnitServices {
 	static Logger log = Logger.getLogger(UnitServices.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	public Unit getUnit(int userFilterId, int id) {
+	public Unit getUnit(int userFilterId, int id) throws SQLException {
 		log.info("UnitServices.getUnit(userFilterId, id)");
 		return UnitDAL.getUnit(userFilterId, id);
 	}
 
-	public Unit getUnit(int userFilterId, String serialNo) {
+	public Unit getUnit(int userFilterId, String serialNo) throws SQLException {
 		log.info("UnitServices.getUnit(userFilterId, serialNo)");
 		return UnitDAL.getUnit(userFilterId, serialNo);
 	}
 
-	public List<Unit> getUnits(int userFilterId) {
-		log.info("UnitServices.getUnits(userFilterId)");
-		return UnitDAL.getUnits(userFilterId);
+	public List<Unit> getUnits(int userFilterId, boolean includeDeactive) throws SQLException {
+		log.info("UnitServices.getUnits(userFilterId, includeDeactive)");
+		return UnitDAL.getUnits(userFilterId, includeDeactive);
 	}
 
+	public void deactivate(int userFilterId, int unitId) throws SQLException {
+		log.info("UnitService.deactivate");
+		
+		UnitDAL.deactivate(userFilterId, unitId);
+	}
 	public Unit save(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitService.save");
 		
@@ -58,14 +64,51 @@ public class UnitServices {
 		return UnitDAL.install(dbUnit, actionUserId);
 	}
 	
-	public List<UnitReading> getUnitReadings(int userFilterId, int id, int limit) {
+	public List<UnitReading> getUnitReadings(int userFilterId, int id, int limit) throws SQLException {
 		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
 		return UnitDAL.getUnitReadings(userFilterId, id, limit);
 	}
 
-	public List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) {
+	public List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) throws SQLException {
 		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
 		return UnitDAL.getUnitReadings(userFilterId, serialNo, limit);
+	}
+
+	public List<UnitReading> getUnitReadings(int userFilterId, int unitId, String direction, int lastId, int noRecords) throws SQLException {
+		log.info("UnitServices.getUnitReadings(userFilterId, unitId, direction, lastId, noRecords)");
+		
+		List<UnitReading> unitReadings;
+		List<UnitReading> reverseList = new ArrayList<>();
+		
+		switch (direction.toLowerCase()) {
+			case "first":
+				return UnitDAL.getUnitReadingsFirst(userFilterId, unitId, noRecords);
+			case "next":
+				unitReadings = UnitDAL.getUnitReadingsNext(userFilterId, unitId, lastId, noRecords);
+				if (unitReadings.size() == 0) {
+					unitReadings = UnitDAL.getUnitReadingsLast(userFilterId, unitId, noRecords);
+				}
+				return unitReadings;
+			case "prev":
+				unitReadings = UnitDAL.getUnitReadingsPrev(userFilterId, unitId, lastId, noRecords);
+				if (unitReadings.size() < noRecords) {
+					unitReadings = UnitDAL.getUnitReadingsFirst(userFilterId, unitId, noRecords);
+				}
+				
+				for (int i = unitReadings.size() -1; i >= 0; i--) {
+					reverseList.add(unitReadings.get(i));
+				}
+				
+				return reverseList;
+			default:
+				unitReadings = UnitDAL.getUnitReadingsLast(userFilterId, unitId, noRecords);
+				
+				for (int i = unitReadings.size() -1; i >= 0; i--) {
+					reverseList.add(unitReadings.get(i));
+				}
+				
+				return reverseList;				
+		}
 	}
 
 	public List<UnitReading> pullReadings(int userFilterId, int unitId, String serialNo) throws SQLException {
@@ -74,14 +117,14 @@ public class UnitServices {
 	}
 
 	// for engineering testing only
-	public List<UnitReading> getUnitReadingsTest(String serialNo, int limit) {
+	public List<UnitReading> getUnitReadingsTest(String serialNo, int limit) throws SQLException {
 		log.info("UnitServices.getUnitReadings(userFilterId, id, limit)");
 		return UnitDAL.getUnitReadingsTest(serialNo, limit);
 	}
 
-	public List<UnitReading> getLatestReadings(int userFilterId) {
-		log.info("UnitServices.getLatestReadings(userFilterId)");
-		return UnitDAL.getLatestReadings(userFilterId);
+	public List<UnitReading> getLatestReadings(int userFilterId, boolean includeDeactive) throws SQLException {
+		log.info("UnitServices.getLatestReadings(userFilterId, includeDeactive)");
+		return UnitDAL.getLatestReadings(userFilterId, includeDeactive);
 	}
 
 	public void saveMessage(int unitId, byte[] data, int userId) throws SQLException {

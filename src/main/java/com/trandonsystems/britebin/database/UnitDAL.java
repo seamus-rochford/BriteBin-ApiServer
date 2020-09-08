@@ -25,6 +25,7 @@ import com.trandonsystems.britebin.model.RawData;
 import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UnitMessage;
 import com.trandonsystems.britebin.model.UnitReading;
+import com.trandonsystems.britebin.model.UnitStatus;
 import com.trandonsystems.britebin.model.User;
 
 public class UnitDAL {
@@ -76,6 +77,11 @@ public class UnitDAL {
 		unit.emptyLevel = rs.getInt("emptyLevel");
 		unit.fullLevel = rs.getInt("fullLevel");
 
+		UnitStatus unitStatus = new UnitStatus();
+		unitStatus.id = rs.getInt("ref_unit_status.id");
+		unitStatus.name = rs.getString("ref_unit_status.name");
+		unit.status = unitStatus;
+		
 		// Convert database timestamp(UTC date) to local time instant
 		Timestamp lastActivity = rs.getTimestamp("lastActivity");
 		if (lastActivity == null) {
@@ -120,7 +126,7 @@ public class UnitDAL {
 	}
 	
 		
-	public static Unit getUnit(int userFilterId, int id) {
+	public static Unit getUnit(int userFilterId, int id) throws SQLException {
 
 		log.info("UnitDAL.getUnit(userFilterId, id)");
 		try {
@@ -143,17 +149,20 @@ public class UnitDAL {
 
 			if (rs.next()) {
 				unit = setUnitValues(rs);
+			} else {
+				throw new SQLException("No unit exists with id = " + id + " for customer with id = " + userFilterId);
 			}
 
 		} catch (SQLException ex) {
 			log.error(ex.getMessage());
+			throw ex;
 		}
 
 		return unit;
 	}
 
 	
-	public static Unit getUnit(int userFilterId, String serialNo) {
+	public static Unit getUnit(int userFilterId, String serialNo) throws SQLException {
 
 		log.info("UnitDAL.getUnit(userFilterId, serialNo)");
 		try {
@@ -176,17 +185,20 @@ public class UnitDAL {
 
 			if (rs.next()) {
 				unit = setUnitValues(rs);
+			} else {
+				throw new SQLException("No unit exists with serialNo = " + serialNo + " for customer with id = " + userFilterId);
 			}
 
 		} catch (SQLException ex) {
 			log.error(ex.getMessage());
+			throw ex;
 		}
 
 		return unit;
 	}
 
 	
-	public static List<Unit> getUnits(int userFilterId) {
+	public static List<Unit> getUnits(int userFilterId, boolean includeDeactive) throws SQLException {
 		// Return all units based on "parentId" hierarchy
 		
 		log.info("UnitDAL.getUnits(userFilterId)");
@@ -198,13 +210,14 @@ public class UnitDAL {
 
 		List<Unit> units = new ArrayList<Unit>();
 
-		String spCall = "{ call GetUnits(?) }";
+		String spCall = "{ call GetUnits(?, ?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
 			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, includeDeactive ? 1 : 0);
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
@@ -214,6 +227,7 @@ public class UnitDAL {
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return units;
@@ -336,6 +350,11 @@ public class UnitDAL {
 		unit.emptyLevel = rs.getInt("emptyLevel");
 		unit.fullLevel = rs.getInt("fullLevel");
 		
+		UnitStatus unitStatus = new UnitStatus();
+		unitStatus.id = rs.getInt("ref_unit_status.id");
+		unitStatus.name = rs.getString("ref_unit_status.name");
+		unit.status = unitStatus;
+		
 		// Convert database timestamp(UTC date) to local time instant
 		Timestamp lastActivity = rs.getTimestamp("lastActivity");
 		if (lastActivity == null) {
@@ -452,7 +471,7 @@ public class UnitDAL {
 	}
 	
 	
-	public static List<UnitReading> getUnitReadings(int userFilterId, int unitId, int limit) {
+	public static List<UnitReading> getUnitReadings(int userFilterId, int unitId, int limit) throws SQLException {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
 		try {
@@ -481,13 +500,14 @@ public class UnitDAL {
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return unitReadings;
 	}
 
 	
-	public static List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) {
+	public static List<UnitReading> getUnitReadings(int userFilterId, String serialNo, int limit) throws SQLException {
 
 		log.info("UnitDAL.getUnitReadings(userFilterId, serialNo, limit)");
 		try {
@@ -516,14 +536,163 @@ public class UnitDAL {
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+
+		return unitReadings;
+	}
+
+
+	// Pagination routines
+	public static List<UnitReading> getUnitReadingsFirst(int userFilterId, int unitId, int limit) throws SQLException {
+
+		log.info("UnitDAL.getUnitReadingsFirst(userFilterId, unitId, noRecords)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
+
+		String spCall = "{ call GetUnitReadingsFirst(?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, unitId);
+			spStmt.setInt(3, limit);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				UnitReading unitReading = setUnitReadingValues(rs);
+				
+				unitReadings.add(unitReading);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return unitReadings;
 	}
 
 	
+	public static List<UnitReading> getUnitReadingsNext(int userFilterId, int unitId, int lastId, int limit) throws SQLException {
+
+		log.info("UnitDAL.getUnitReadings(unitId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
+
+		String spCall = "{ call GetUnitReadingsNext(?, ?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, unitId);
+			spStmt.setInt(3, lastId);
+			spStmt.setInt(4, limit);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				UnitReading unitReading = setUnitReadingValues(rs);
+				
+				unitReadings.add(unitReading);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+
+		return unitReadings;
+	}
+
+	
+	public static List<UnitReading> getUnitReadingsPrev(int userFilterId, int unitId, int lastId, int limit) throws SQLException {
+
+		log.info("UnitDAL.getUnitReadings(unitId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
+
+		String spCall = "{ call GetUnitReadingsPrev(?, ?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, unitId);
+			spStmt.setInt(3, lastId);
+			spStmt.setInt(4, limit);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				UnitReading unitReading = setUnitReadingValues(rs);
+				
+				unitReadings.add(unitReading);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+
+		return unitReadings;
+	}
+
+	
+	public static List<UnitReading> getUnitReadingsLast(int userFilterId, int unitId, int limit) throws SQLException {
+
+		log.info("UnitDAL.getUnitReadings(unitId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
+
+		String spCall = "{ call GetUnitReadingsLast(?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, unitId);
+			spStmt.setInt(3, limit);
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				UnitReading unitReading = setUnitReadingValues(rs);
+				
+				unitReadings.add(unitReading);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+
+		return unitReadings;
+	}
+
+	
+	
 	// This one is for engineering testing only
-	public static List<UnitReading> getUnitReadingsTest(String serialNo, int limit) {
+	public static List<UnitReading> getUnitReadingsTest(String serialNo, int limit) throws SQLException {
 
 		log.info("UnitDAL.getUnitReadings(userFilterId, serialNo, limit)");
 		try {
@@ -551,6 +720,7 @@ public class UnitDAL {
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return unitReadings;
@@ -598,7 +768,7 @@ public class UnitDAL {
 	}
 
 	
-	public static List<UnitReading> getLatestReadings(int userFilterId) {
+	public static List<UnitReading> getLatestReadings(int userFilterId, boolean includeDeactive) throws SQLException {
 
 		log.info("UnitDAL.getLatestReadings(userFilterId)");
 		try {
@@ -609,13 +779,14 @@ public class UnitDAL {
 
 		List<UnitReading> unitReadings = new ArrayList<UnitReading>();
 
-		String spCall = "{ call GetLatestReadings(?) }";
+		String spCall = "{ call GetLatestReadings(?, ?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
 			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, includeDeactive ? 1 : 0);
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
@@ -625,13 +796,14 @@ public class UnitDAL {
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return unitReadings;
 	}
 	
 
-	public static long saveRawData(byte[] data) throws SQLException{
+	public static long saveRawData(byte[] data) throws SQLException {
 
 		log.info("UnitDAL.saveRawData(data) - start");
 		try {
@@ -1049,6 +1221,34 @@ public class UnitDAL {
 	}
 	
 	
+ 	public static void deactivate(int userActionId, int unitId) throws SQLException {
+		log.info("UnitDAL.save(unit, actionUserId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+		
+		String spCall = "{ call deactivateUnit(?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, unitId);
+			spStmt.setInt(2, userActionId);
+			
+			spStmt.executeUpdate();
+			
+		} catch (SQLException ex) {
+			log.error("UserDAL.deactivate: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UserDAL.deactivate(unit, actionUserId) - end");
+	}
+
+ 	
  	public static Unit save(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitDAL.save(unit, actionUserId)");
 		try {

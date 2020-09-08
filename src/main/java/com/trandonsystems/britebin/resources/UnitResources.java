@@ -1,5 +1,6 @@
 package com.trandonsystems.britebin.resources;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,10 +101,11 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUnits")
 	@JWTTokenNeeded
-	public Response getUnits(@Context HttpHeaders httpHeaders) {
+	public Response getUnits(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
 		
 		try {
 			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
@@ -114,11 +116,66 @@ public class UnitResources {
 			// Get userId from JwtToken (Note: if the role is driver or technician it will return the parentId)
 			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 			
+			Boolean includeDeactive = false;
+			if (queryParams.containsKey("includeDeactive")) {
+				includeDeactive = queryParams.getFirst("includeDeactive").equalsIgnoreCase("true");
+				log.debug("Include Deactive: " + includeDeactive);
+			}
+			
 			// All units for this user
-			List<Unit>units = unitServices.getUnits(userFilterId);
+			List<Unit>units = unitServices.getUnits(userFilterId, includeDeactive);
 			
 			return Response.status(Response.Status.OK) // 200 
 				.entity(units)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+    
+	
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("deactivate")
+	@JWTTokenNeeded
+	public Response deactivate(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			// Get userId from JwtToken (Note: if the role is driver or technician it will return the parentId)
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			
+			int unitId;
+			if (queryParams.containsKey("serialNo")) {
+				String serialNo = queryParams.getFirst("serialNo");
+				log.debug("serialNo: " + serialNo);
+				
+				unitId = unitServices.getUnit(userFilterId, serialNo).id;
+			} else if (queryParams.containsKey("unitId")) {
+				unitId = Integer.parseInt(queryParams.getFirst("unitId"));
+				unitId = unitServices.getUnit(userFilterId, unitId).id;
+				log.debug("unitId: " + unitId);								
+			} else {
+				throw new Exception("serialNo or unitId required for deactivating unit");
+			}
+			
+			// Deactivate unit
+			unitServices.deactivate(userFilterId, unitId);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity("")
 				.build();
 			
 		} catch (Exception ex) {
@@ -289,6 +346,111 @@ public class UnitResources {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getUnitReadingsByPage")
+	@JWTTokenNeeded
+	public Response getUnitReadingsByPage(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+						
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			
+			List<UnitReading>unitReadings = new ArrayList<UnitReading>();
+			
+			// Get dir parameter 
+			String direction = "";
+			if (queryParams.containsKey("direction")) {
+				direction = queryParams.getFirst("direction");
+				log.debug("direction: " + direction);
+			} else {
+				return Response.status(Response.Status.BAD_REQUEST)
+						.entity("<dir> parameter not supplied")
+						.build();
+			}
+
+			if (!(direction.equalsIgnoreCase("first") || direction.equalsIgnoreCase("prev") || direction.equalsIgnoreCase("next") || direction.equalsIgnoreCase("last"))) {
+				return Response.status(Response.Status.BAD_REQUEST)
+						.entity("Invalid value supplied for parameter <dir>, valid values 'first', 'prev', 'next' and 'last'")
+						.build();
+			}
+			
+			int lastId = 0;
+			if (direction.equalsIgnoreCase("prev") || direction.equalsIgnoreCase("next")) {
+				if (queryParams.containsKey("lastId")) {
+					try {
+						lastId = Integer.parseInt(queryParams.getFirst("lastId"));
+						log.debug("lastId: " + lastId);					
+					} catch (Exception ex) {
+						return Response.status(Response.Status.BAD_REQUEST)
+								.entity("Invalid value supplied for parameter <lastId>, it must be an integer")
+								.build();
+					}
+				} else {
+					return Response.status(Response.Status.BAD_REQUEST)
+							.entity("<lastId> parameter not supplied")
+							.build();
+				}
+			}
+			
+			int noRecords = 0;
+			if (queryParams.containsKey("noRecords")) {
+				try {
+					noRecords = Integer.parseInt(queryParams.getFirst("noRecords"));
+					log.debug("noRecords: " + noRecords);
+					
+					if (noRecords <= 0) {
+						return Response.status(Response.Status.BAD_REQUEST)
+								.entity("Invalid value supplied for parameter <noRecords>, it must be positive number")
+								.build();
+					}
+				} catch (Exception ex) {
+					return Response.status(Response.Status.BAD_REQUEST)
+							.entity("Invalid value supplied for parameter <noRecords>, it must be an integer")
+							.build();
+				}
+			} else {
+				return Response.status(Response.Status.BAD_REQUEST)
+						.entity("<lastId> parameter not supplied")
+						.build();
+			}
+			
+			int unitId = 0;
+			if (queryParams.containsKey("unitId")) {
+				unitId = Integer.parseInt(queryParams.getFirst("unitId"));
+				log.debug("unitId: " + unitId);
+			} else if (queryParams.containsKey("serialNo")) {
+				String serialNo = queryParams.getFirst("serialNo");
+				log.debug("serialNo: " + serialNo);
+				
+				Unit unit = unitServices.getUnit(userFilterId, serialNo);
+				unitId = unit.id;
+				log.debug("unitId: " + unitId);
+			} 
+			
+			unitReadings = unitServices.getUnitReadings(userFilterId, unitId, direction, lastId, noRecords);		
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(unitReadings)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("pullReadings")
 	@JWTTokenNeeded
 	public Response pullReadings(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
@@ -406,11 +568,12 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getLatestReadings")
 	@JWTTokenNeeded
-	public Response getLatestReadings(@Context HttpHeaders httpHeaders) {
+	public Response getLatestReadings(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
 		
 		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
 			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
-						
+			
 			String authorization = queryHeaders.getFirst("Authorization");
 			log.debug("authorization: " + authorization);
 	
@@ -419,7 +582,13 @@ public class UnitResources {
 	
 			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 			
-			List<UnitReading>latestReadings = unitServices.getLatestReadings(userFilterId);
+			Boolean includeDeactive = false;
+			if (queryParams.containsKey("includeDeactive")) {
+				includeDeactive = queryParams.getFirst("includeDeactive").equalsIgnoreCase("true");
+				log.debug("Include Deactive: " + includeDeactive);
+			}
+			
+			List<UnitReading>latestReadings = unitServices.getLatestReadings(userFilterId, includeDeactive);
 			
 			return Response.status(Response.Status.OK) // 200 
 				.entity(latestReadings)
@@ -515,16 +684,26 @@ public class UnitResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUnitReadings/{serialNo}")
 	public List<UnitReading> getUnitReadings(@PathParam("serialNo") String serialNo) {
-		log.info("getUnitReadings(serialNo)");
-		return unitServices.getUnitReadingsTest(serialNo, -1);
+		try {
+			log.info("getUnitReadings(serialNo)");
+			return unitServices.getUnitReadingsTest(serialNo, -1);
+		} catch (SQLException ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return null;			
+		}
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUnitReadings/{serialNo}/limit/{limit}")
 	public List<UnitReading> getUnitReadings(@PathParam("serialNo") String serialNo, @PathParam("limit") int limit) {
-		log.info("getUnitReadings(serialNo, limit)");
-		return unitServices.getUnitReadingsTest(serialNo, limit);
+		try {
+			log.info("getUnitReadings(serialNo, limit)");
+			return unitServices.getUnitReadingsTest(serialNo, limit);
+		} catch (SQLException ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+			return null;			
+		}
 	}
 
 

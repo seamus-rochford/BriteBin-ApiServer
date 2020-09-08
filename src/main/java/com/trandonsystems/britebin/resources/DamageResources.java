@@ -1,5 +1,6 @@
 package com.trandonsystems.britebin.resources;
 
+import java.io.File;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
@@ -33,6 +34,8 @@ import com.trandonsystems.britebin.services.UserServices;
 @Path("damage")
 public class DamageResources {
 
+	static final long MEDIUM_BLOB_SIZE = 16777215;
+	
 	static Logger log = Logger.getLogger(DamageResources.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	
@@ -274,6 +277,14 @@ public class DamageResources {
 		        uploadImageFileName = UtilResources.UPLOAD_FOLDER + fileDetails.getFileName();
 		        UtilResources.saveToFile(uploadedInputStream, uploadImageFileName);
 		        log.debug("upload image file to server - complete");		        
+
+	    		File file = new File(uploadImageFileName);
+	    		if (file.length() > MEDIUM_BLOB_SIZE) {
+	    			log.error(Response.Status.BAD_REQUEST + " - Image is too large to save in the database");
+	    			return Response.status(Response.Status.BAD_REQUEST) // 400 
+	    					.entity("Image is too large to save in the database")
+	    					.build();	    		}
+	        	
 	        }
 	        
 			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();

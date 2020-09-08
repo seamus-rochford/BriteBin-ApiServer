@@ -44,6 +44,8 @@ public class AlertDAL {
 
 		alert.damage = (rs.getInt("alert_defn.damage") == 1);
 
+		alert.notReporting = (rs.getInt("alert_defn.notReporting") == 1);
+
 		alert.email = (rs.getInt("alert_defn.email") == 1);
 		alert.sms = (rs.getInt("alert_defn.sms") == 1);
 		alert.whatsApp = (rs.getInt("alert_defn.whatsapp") == 1);
@@ -347,7 +349,7 @@ public class AlertDAL {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call SaveAlert(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		String spCall = "{ call SaveAlertDefn(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
@@ -368,11 +370,12 @@ public class AlertDAL {
 				spStmt.setInt(10, alert.serviceDoorOpen ? 1 : 0);
 				spStmt.setInt(11, alert.flapStuckOpen ? 1 : 0);
 				spStmt.setInt(12, alert.damage ? 1 : 0);
-				spStmt.setInt(13, alert.email ? 1 : 0);
-				spStmt.setInt(14, alert.sms ? 1 : 0);
-				spStmt.setInt(15, alert.whatsApp ? 1 : 0);
-				spStmt.setInt(16, alert.pushNotification ? 1 : 0);
-				spStmt.setInt(17, actionUserId);
+				spStmt.setInt(13, alert.notReporting ? 1 : 0);
+				spStmt.setInt(14, alert.email ? 1 : 0);
+				spStmt.setInt(15, alert.sms ? 1 : 0);
+				spStmt.setInt(16, alert.whatsApp ? 1 : 0);
+				spStmt.setInt(17, alert.pushNotification ? 1 : 0);
+				spStmt.setInt(18, actionUserId);
 				
 				spStmt.registerOutParameter(1, Types.BIGINT);
 				

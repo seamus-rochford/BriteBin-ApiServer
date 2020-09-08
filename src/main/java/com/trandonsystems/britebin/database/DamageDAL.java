@@ -387,7 +387,7 @@ public class DamageDAL {
 			spStmt.setInt(2, unitId);
 			spStmt.setString(3, comment);
 			spStmt.setInt(4, actionUserId);
-			spStmt.setBlob(5, image);
+			spStmt.setBinaryStream(5, image);
 			ResultSet rs = spStmt.executeQuery();
 			
 			if (rs.next()) {

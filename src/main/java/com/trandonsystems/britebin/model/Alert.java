@@ -19,6 +19,8 @@ public class Alert {
 
 	public boolean damage;
 
+	public boolean notReporting;
+	
 	public boolean email;
 	public boolean sms;
 	public boolean whatsApp;

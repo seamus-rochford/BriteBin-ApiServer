@@ -13,6 +13,7 @@ public class Unit {
 	public double longitude;
 	public BinType binType;
 	public ContentType contentType;
+	public UnitStatus status;
 	public boolean useBinTypeLevel;
 	public int emptyLevel;
 	public int fullLevel;
