@@ -154,8 +154,66 @@ public class UnitResources {
 			String jwtToken = authorization.substring(7);
 			log.debug("jwtToken: " + jwtToken);
 	
-			// Get userId from JwtToken (Note: if the role is driver or technician it will return the parentId)
+			// Get userId from JwtToken 
+			int actionUserId = userServices.getUserIdFromJwtToken(jwtToken);
+			
+			// Get user filter Id - if driver or technician the user filter is their parent Id
 			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			
+			int unitId;
+			if (queryParams.containsKey("serialNo")) {
+				String serialNo = queryParams.getFirst("serialNo");
+				log.debug("serialNo: " + serialNo);
+				
+				unitId = unitServices.getUnit(userFilterId, serialNo).id;
+			} else if (queryParams.containsKey("unitId")) {
+				unitId = Integer.parseInt(queryParams.getFirst("unitId"));
+				
+				// Attempt to get to unit to validate they have access to this unit
+				unitId = unitServices.getUnit(userFilterId, unitId).id;
+				log.debug("unitId: " + unitId);								
+			} else {
+				throw new Exception("serialNo or unitId required for deactivating unit");
+			}
+			
+			// Deactivate unit
+			unitServices.deactivate(unitId, actionUserId);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity("")
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+    
+	
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("activate")
+	@JWTTokenNeeded
+	public Response activate(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			// Get userId from JwtToken 
+			int actionUserId = userServices.getUserIdFromJwtToken(jwtToken);
+			
+			// Get user filter Id - if driver or technician the user filter is their parent Id
+			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
+			
 			
 			int unitId;
 			if (queryParams.containsKey("serialNo")) {
@@ -171,8 +229,8 @@ public class UnitResources {
 				throw new Exception("serialNo or unitId required for deactivating unit");
 			}
 			
-			// Deactivate unit
-			unitServices.deactivate(userFilterId, unitId);
+			// Activate unit
+			unitServices.activate(unitId, actionUserId);
 			
 			return Response.status(Response.Status.OK) // 200 
 				.entity("")

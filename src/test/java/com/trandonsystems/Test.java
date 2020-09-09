@@ -188,7 +188,7 @@ public class Test {
 	private static void testUsers() {
 	
 		UserServices us = new UserServices();	
-		List<User> users = us.getUsers(1);
+		List<User> users = us.getUsers(1, false);
 		
 		log.info("Users: ");
 		log.info(gson.toJson(users));

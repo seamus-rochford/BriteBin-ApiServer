@@ -91,9 +91,10 @@ public class UserResources {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("getUsers")
 	@JWTTokenNeeded
-	public Response getUsers(@Context HttpHeaders httpHeader) {
+	public Response getUsers(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader) {
 		log.debug("getUsers");
 		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
 			MultivaluedMap<String, String> queryHeaders = httpHeader.getRequestHeaders();
 			
 			String authorization = queryHeaders.getFirst("Authorization");
@@ -104,7 +105,13 @@ public class UserResources {
 	
 			int userFilterId = userServices.getUserFilterIdFromJwtToken(jwtToken);
 	
-			List<User>users = userServices.getUsers(userFilterId);
+			Boolean includeDeactive = false;
+			if (queryParams.containsKey("includeDeactive")) {
+				includeDeactive = queryParams.getFirst("includeDeactive").equalsIgnoreCase("true");
+				log.debug("Include Deactive: " + includeDeactive);
+			}
+			
+			List<User>users = userServices.getUsers(userFilterId, includeDeactive);
 			
 			log.debug("No. Users: " + users.size());
 			return Response.status(Response.Status.OK) // 200 

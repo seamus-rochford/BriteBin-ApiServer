@@ -1221,8 +1221,8 @@ public class UnitDAL {
 	}
 	
 	
- 	public static void deactivate(int userActionId, int unitId) throws SQLException {
-		log.info("UnitDAL.save(unit, actionUserId)");
+ 	public static void deactivate(int unitId, int userActionId) throws SQLException {
+		log.info("UnitDAL.deactivate(unitId, actionUserId)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
@@ -1242,6 +1242,34 @@ public class UnitDAL {
 			
 		} catch (SQLException ex) {
 			log.error("UserDAL.deactivate: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("UserDAL.deactivate(unit, actionUserId) - end");
+	}
+
+ 	
+ 	public static void activate(int unitId, int userActionId) throws SQLException {
+		log.info("UnitDAL.activate(unitId, actionUserId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+		
+		String spCall = "{ call activateUnit(?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, unitId);
+			spStmt.setInt(2, userActionId);
+			
+			spStmt.executeUpdate();
+			
+		} catch (SQLException ex) {
+			log.error("UserDAL.activate: " + ex.getMessage());
 			throw ex;
 		}
 		

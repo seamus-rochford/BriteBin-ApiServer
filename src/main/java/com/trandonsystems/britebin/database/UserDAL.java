@@ -382,7 +382,7 @@ public class UserDAL {
 		return user;
 	}
 
-	public static List<User> getUsers(int userFilterId) {
+	public static List<User> getUsers(int userFilterId, boolean includeDeactive) {
 
 		log.info("UserDAL.getUsers(userFilterId)");
 		try {
@@ -393,13 +393,14 @@ public class UserDAL {
 
 		List<User> users = new ArrayList<User>();
 
-		String spCall = "{ call GetUsers(?) }";
+		String spCall = "{ call GetUsers(?, ?) }";
 		log.info("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
 			spStmt.setInt(1, userFilterId);
+			spStmt.setInt(2, includeDeactive ? 1 : 0);
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {

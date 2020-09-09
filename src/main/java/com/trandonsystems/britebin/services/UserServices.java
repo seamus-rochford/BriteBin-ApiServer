@@ -23,9 +23,9 @@ public class UserServices {
 	static Logger log = Logger.getLogger(UserServices.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	public List<User> getUsers(int userFilterId) {
-		log.info("UserService.getUsers(userFilterId)");
-		return UserDAL.getUsers(userFilterId);
+	public List<User> getUsers(int userFilterId, boolean includeDeactive) {
+		log.info("UserService.getUsers(userFilterId, includeDeactive)");
+		return UserDAL.getUsers(userFilterId, includeDeactive);
 	}
 
 	public List<User> getPossibleParents(int userFilterId) {
