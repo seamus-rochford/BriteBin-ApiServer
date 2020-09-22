@@ -45,4 +45,6 @@ public class User {
 	public int modifiedBy;
 	
 	public String newPassword;
+	
+	public String gcmToken;		// Used for push notification
 }

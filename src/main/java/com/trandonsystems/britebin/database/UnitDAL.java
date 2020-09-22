@@ -382,7 +382,7 @@ public class UnitDAL {
 		unitReading.batteryVoltageReading = rs.getInt("batteryVoltage");
 		unitReading.temperature = rs.getInt("temperature");
 		unitReading.noCompactions = rs.getInt("noCompactions");
-		unitReading.nbIoTSignalStrength = rs.getInt("nbIoTSignalStrength");
+		unitReading.nbIoTSignalStrength = 0;
 		
 		unitReading.batteryUVLO = (rs.getInt("batteryUVLO") == 1);
 		unitReading.binEmptiedLastPeriod = (rs.getInt("binEmptiedLastPeriod") == 1);
@@ -392,6 +392,8 @@ public class UnitDAL {
 		unitReading.binTilted = (rs.getInt("binTilted") == 1);
 		unitReading.serviceDoorOpen = (rs.getInt("serviceDoorOpen") == 1);
 		unitReading.flapStuckOpen = (rs.getInt("flapStuckOpen") == 1);
+
+		unitReading.serviceDoorClosed = (rs.getInt("serviceDoorClosed") == 1);
 
 		unitReading.rssi = rs.getDouble("rssi");
 		unitReading.src = rs.getInt("src");
@@ -981,7 +983,7 @@ public class UnitDAL {
 			spStmt.setInt(16, reading.binTilted ? 1 : 0);
 			spStmt.setInt(17, reading.serviceDoorOpen ? 1 : 0);
 			spStmt.setInt(18, reading.flapStuckOpen ? 1 : 0);
-			spStmt.setInt(19, reading.nbIoTSignalStrength);
+			spStmt.setInt(19, reading.serviceDoorClosed ? 1 : 0);
 			spStmt.setDouble(20, reading.rssi);
 			spStmt.setInt(21, reading.src);
 			spStmt.setDouble(22, reading.snr);

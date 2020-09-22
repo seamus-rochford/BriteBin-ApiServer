@@ -199,6 +199,7 @@ public class UserResources {
 		try {
 			log.info("POST: Login user");
 			log.info("User: " + user.email);
+			log.info("GCM Token: " + user.gcmToken);
 			
 			int errorCode = userServices.loginUser(user);
 			log.info("ErrorCode: " + errorCode);
@@ -216,12 +217,6 @@ public class UserResources {
 				String token = JsonWebToken.createJWT(user);
 				// Clear the password so that it is NOT sent back
 				user.password = null;
-				
-				// Testing using SessionId for identifying userIds going forward
-//				HttpSession session = request.getSession(true);
-//				
-//				log.info("Session Object: ");
-//				log.info(gson.toJson(session));
 				
 				if (user.status.id == User.USER_STATUS_ACTIVE) {
 					

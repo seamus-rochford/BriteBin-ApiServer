@@ -73,7 +73,7 @@ public class UserServices {
 			}
 	
 			// Update last loggedIn
-			UserDAL.updateLastLoggedIn(dbUser.id);
+			UserDAL.updateLastLoggedIn(dbUser.id, user.gcmToken);
 			
 			// Assign the dbUser fields to user (because that is the equivalent to pass by reference)
 			user.id = dbUser.id;

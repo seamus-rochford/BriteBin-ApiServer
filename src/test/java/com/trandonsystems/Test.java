@@ -458,13 +458,20 @@ public class Test {
 	    timer.scheduleAtFixedRate(repeatedTask, delay, period);
 	}
 	
+	
 	public static void main(String[] args) {
 
 		String msg = BuildJson();
 		System.out.println(msg);
 
-		testSchedulingTask();
+//		testSchedulingTask();
 		
+		try {
+			String result = PushNotificationHelper.sendPushNotification("00353872646379");
+			System.out.println("Result: " + result);
+		} catch(Exception ex) {
+			System.out.println("ERROR: " + ex.getMessage());
+		}
 		
 //		testLoadImage();
 		

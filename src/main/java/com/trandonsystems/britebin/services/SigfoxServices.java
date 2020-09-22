@@ -42,6 +42,9 @@ public class SigfoxServices {
 		
 		byte[] data = Hex.hexStringToByteArray(sigfoxData.data);
 		
+		// Pass userId = 1 (admin user) so they can have access to all units
+        Unit unit = UnitDAL.getUnit(1, reading.serialNo);
+
 		reading.msgType = data[0] & 0xff;
 		
 		UnitMessage unitMsg = new UnitMessage();
@@ -62,17 +65,19 @@ public class SigfoxServices {
 			reading.binLocked = ((flags & 0x08) == 0x08);
 			reading.binFull = ((flags & 0x10) == 0x10);
 			reading.binTilted = ((flags & 0x20) == 0x20);
-			reading.serviceDoorOpen = ((flags & 0x40) == 0x40);
+			reading.serviceDoorClosed = ((flags & 0x40) == 0x40);
 			reading.flapStuckOpen = ((flags & 0x80) == 0x80);
 			
-			int signalStrength = data[9] & 0xff;
-			reading.nbIoTSignalStrength = signalStrength >> 4;
+			flags = data[9] & 0xff;
+			reading.serviceDoorOpen = ((flags & 0x01) == 0x01);
+			
+			// No longer used
+//			int signalStrength = data[9] & 0xff;
+//			reading.nbIoTSignalStrength = signalStrength >> 4;
+			reading.nbIoTSignalStrength = 0;
 
 			// bytes 10 & 11 not used at the moment
 			
-			// Pass userId = 1 (admin user) so they can have access to all units
-	        Unit unit = UnitDAL.getUnit(1, reading.serialNo);
-
 	        reading.readingDateTime = Instant.now();
 	        
 	        // Set firmware parameters in the reading
@@ -97,6 +102,16 @@ public class SigfoxServices {
 			
 			reading.firmware = firmware;
 
+			// flags
+			int flags5 = data[10] & 0xff;
+			reading.binJustOn = ((flags5 & 0x80) == 0x01);
+			reading.regularPeriodicReporting = ((flags5 & 0x80) == 0x02);
+			reading.nbiotSimIssue = ((flags5 & 0x80) == 0x03);  // Irrelevant for NB-IoT because will not be received - only useful for Sigfox
+			
+	        reading.readingDateTime = Instant.now();
+			
+			log.info(reading);
+			
 			try {
 				int hour = Integer.parseInt(String.format("%02d", data[7] & 0xff));
 				int minute = Integer.parseInt(String.format("%02d", data[8] & 0xff));
@@ -111,24 +126,30 @@ public class SigfoxServices {
 				long timeDiff = unitTime.getEpochSecond() - now.getEpochSecond();
 			
 				reading.timeDiff = timeDiff;
+				
+				// Note the time may not be correct on a firmware send just after a switch on - so ignore after a just on
+				// timeDiff is in seconds if timeDiff > or less than 5 minutes (300 seconds) request to sent a time rest to the firmware
+		        if (!reading.binJustOn && (timeDiff <= 300 || timeDiff >= 300)) {
+		        	
+		        	// Save we want to set the time but the time bytes will only be set just before we send the message 
+		        	// - do NOT save current date/time because this will be wrong by the time we send the message
+		        	byte[] msgData = {(byte)0x04, // Message Type = 4 - set time on the unit
+							(byte)0x00, // year = 00
+							(byte)0x00, // month = 00
+							(byte)0x00, // day = 00
+							(byte)0x00, // hours = 00
+							(byte)0x00, // minutes = 00
+							(byte)0x00, // seconds = 00
+							(byte)0x00 // Flags - all set to ignore
+		        	};
+		        	
+		        	UnitDAL.saveMessage(unit.id, msgData, 0);
+		        }
 			} catch (Exception ex) {
 				log.error("ERROR: Message Type = 5: Converting device time to valid time failed " + ex.getMessage());
 				reading.timeDiff = 0;
 			}
 
-			// flags
-			int flags5 = data[10] & 0xff;
-			reading.binJustOn = ((flags5 & 0x80) == 0x01);
-			reading.regularPeriodicReporting = ((flags5 & 0x80) == 0x02);
-			reading.nbiotSimIssue = ((flags5 & 0x80) == 0x03);  // Irrelevant for NB-IoT because will not be received - only useful for Sigfox
-
-			
-	        unit = UnitDAL.getUnit(1, reading.serialNo);
-
-	        reading.readingDateTime = Instant.now();
-			
-			log.info(reading);
-			
 			unitMsg = UnitDAL.saveReadingFirmware(rawDataId, unit.id, reading);
 		
 			unitMsg.serialNo = unit.serialNo;

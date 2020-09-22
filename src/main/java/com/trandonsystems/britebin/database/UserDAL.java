@@ -35,118 +35,127 @@ public class UserDAL {
 		passwordEncryptor.setAlgorithm("SHA-1");
 		passwordEncryptor.setPlainDigest(true);
 	}
-
-	public static User getBySQL(int id) {
-
-		log.info("UserDAL.getBySQL");
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-		} catch (Exception ex) {
-			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
-		}
-
-		String sql = "SELECT * FROM user WHERE id = " + id;
-		log.info("SQL: " + sql);
-		
+	
+	public static User setUserValues (ResultSet rs) throws SQLException {
 		User user = new User();
+
+		user.id = rs.getInt("id");
+		user.email = rs.getString("email");
+		user.password = rs.getString("password");
 		
-		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
-				PreparedStatement pst = conn.prepareStatement(sql);
-				ResultSet rs = pst.executeQuery()) {
-
-			user.id = id;
-			if (rs.next()) {
-				user.email = rs.getString("email");
-				user.password = rs.getString("password");
-				
-				Role role = new Role();
-				role.id = rs.getInt("role");
-				role.name = rs.getString("ref_roles.name");
-				user.role = role;
-				
-				user.parent = new User();
-				user.parent.id = rs.getInt("parentId");
-				user.parent.name = rs.getString("parentUser.name");
-				
-				UserStatus status = new UserStatus();
-				status.id = rs.getInt("status");
-				status.name = rs.getString("ref_status.name");
-				user.status = status;
-				
-				Locale locale = new Locale();
-				locale.abbr = rs.getString("locale");
-				locale.name = rs.getString("ref_locale.name");
-				user.locale = locale;
-				
-				user.name = rs.getString("name");
-				user.addr1 = rs.getString("addr1");
-				user.addr2 = rs.getString("addr2");
-				user.city = rs.getString("city");
-				user.county = rs.getString("county");
-				user.postcode = rs.getString("postcode");
-				
-				Country country = new Country();
-				country.id = rs.getInt("country");
-				country.name = rs.getString("ref_country.name");
-				country.abbr = rs.getString("ref_country.abbr");
-				user.country = country;
-				
-				user.mobile = rs.getString("mobile");
-				user.homeTel = rs.getString("homeTel");
-				user.workTel = rs.getString("workTel");
-
-				user.binLevelAlert = rs.getInt("binLevelAlert");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("last_logged_in");
-				if (lastLoggedIn == null) {
-					user.lastLoggedIn = null;
-				}
-				else {
-					java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
-					user.lastLoggedIn = lastLoggedInInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("last_activity");
-				if (lastActivity == null) {
-					user.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					user.lastActivity = lastActivityInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					user.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					user.insertDate = insertDateInstant;
-				}
-				user.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					user.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					user.modifiedDate = modifiedDateInstant;
-				}
-				user.modifiedBy = rs.getInt("modifiedBy");
-
-			}
-
-		} catch (SQLException ex) {
-			log.error(ex.getMessage());
+		Role role = new Role();
+		role.id = rs.getInt("role");
+		role.name = rs.getString("ref_roles.name");
+		user.role = role;
+		
+		user.parent = new User();
+		user.parent.id = rs.getInt("parentId");
+		user.parent.name = rs.getString("parentUser.name");
+		
+		UserStatus status = new UserStatus();
+		status.id = rs.getInt("status");
+		status.name = rs.getString("ref_status.name");
+		user.status = status;
+		
+		Locale locale = new Locale();
+		locale.abbr = rs.getString("locale");
+		locale.name = rs.getString("ref_locale.name");
+		user.locale = locale;
+		
+		user.name = rs.getString("name");
+		user.addr1 = rs.getString("addr1");
+		user.addr2 = rs.getString("addr2");
+		user.city = rs.getString("city");
+		user.county = rs.getString("county");
+		user.postcode = rs.getString("postcode");
+		
+		Country country = new Country();
+		country.id = rs.getInt("country");
+		country.name = rs.getString("ref_country.name");
+		country.abbr = rs.getString("ref_country.abbr");
+		user.country = country;
+		
+		user.mobile = rs.getString("mobile");
+		user.homeTel = rs.getString("homeTel");
+		user.workTel = rs.getString("workTel");
+		
+		user.binLevelAlert = rs.getInt("binLevelAlert");
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
+		if (lastLoggedIn == null) {
+			user.lastLoggedIn = null;
 		}
-
+		else {
+			java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
+			user.lastLoggedIn = lastLoggedInInstant;
+		}
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp lastActivity = rs.getTimestamp("lastActivity");
+		if (lastActivity == null) {
+			user.lastActivity = null;
+		}
+		else {
+			java.time.Instant lastActivityInstant = lastActivity.toInstant();
+			user.lastActivity = lastActivityInstant;
+		}
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp insertDate = rs.getTimestamp("insertDate");
+		if (insertDate == null) {
+			user.insertDate = null;
+		}
+		else {
+			java.time.Instant insertDateInstant = insertDate.toInstant();
+			user.insertDate = insertDateInstant;
+		}
+		user.insertBy = rs.getInt("insertBy");
+		
+		// Convert database timestamp(UTC date) to local time instant
+		Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
+		if (modifiedDate == null) {
+			user.modifiedDate = null;
+		}
+		else {
+			java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
+			user.modifiedDate = modifiedDateInstant;
+		}
+		user.modifiedBy = rs.getInt("modifiedBy");
+		
+		user.gcmToken = rs.getString("gcmToken");
+		
 		return user;
 	}
+
+//	public static User getBySQL(int id) {
+//
+//		log.info("UserDAL.getBySQL");
+//		try {
+//			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+//		} catch (Exception ex) {
+//			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+//		}
+//
+//		String sql = "SELECT * FROM user WHERE id = " + id;
+//		log.info("SQL: " + sql);
+//		
+//		User user = new User();
+//		
+//		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+//				PreparedStatement pst = conn.prepareStatement(sql);
+//				ResultSet rs = pst.executeQuery()) {
+//
+//			if (rs.next()) {
+//				user = setUserValues(rs);
+//			}
+//
+//		} catch (SQLException ex) {
+//			log.error(ex.getMessage());
+//		}
+//
+//		return user;
+//	}
 
 	public static User get(int userFilterId, int id) {
 
@@ -160,7 +169,7 @@ public class UserDAL {
 		String spCall = "{ call GetUserById(?, ?) }";
 		log.info("SP Call: " + spCall);
 		
-		User user = null;
+		User user = new User();
 		
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
@@ -170,92 +179,7 @@ public class UserDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			if (rs.next()) {
-				user = new User();
-				
-				user.id = id;
-				user.email = rs.getString("email");
-				user.password = rs.getString("password");
-				
-				Role role = new Role();
-				role.id = rs.getInt("role");
-				role.name = rs.getString("ref_roles.name");
-				user.role = role;
-				
-				user.parent = new  User();
-				user.parent.id = rs.getInt("parentId");
-				user.parent.name = rs.getString("parentUser.name");
-				
-				UserStatus status = new UserStatus();
-				status.id = rs.getInt("status");
-				status.name = rs.getString("ref_status.name");
-				user.status = status;
-				
-				Locale locale = new Locale();
-				locale.abbr = rs.getString("locale");
-				locale.name = rs.getString("ref_locale.name");
-				user.locale = locale;
-				
-				user.name = rs.getString("name");
-				user.addr1 = rs.getString("addr1");
-				user.addr2 = rs.getString("addr2");
-				user.city = rs.getString("city");
-				user.county = rs.getString("county");
-				user.postcode = rs.getString("postcode");
-				
-				Country country = new Country();
-				country.id = rs.getInt("country");
-				country.name = rs.getString("ref_country.name");
-				country.abbr = rs.getString("ref_country.abbr");
-				user.country = country;
-				
-				user.mobile = rs.getString("mobile");
-				user.homeTel = rs.getString("homeTel");
-				user.workTel = rs.getString("workTel");
-				
-				user.binLevelAlert = rs.getInt("binLevelAlert");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
-				if (lastLoggedIn == null) {
-					user.lastLoggedIn = null;
-				}
-				else {
-					java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
-					user.lastLoggedIn = lastLoggedInInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					user.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					user.lastActivity = lastActivityInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					user.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					user.insertDate = insertDateInstant;
-				}
-				user.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					user.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					user.modifiedDate = modifiedDateInstant;
-				}
-				user.modifiedBy = rs.getInt("modifiedBy");
-
+				user = setUserValues(rs);
 			}
 
 		} catch (SQLException ex) {
@@ -277,7 +201,7 @@ public class UserDAL {
 		String spCall = "{ call GetUser(?, ?) }";
 		log.info("SP Call: " + spCall);
 
-		User user = null;
+		User user = new User();
 		
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
@@ -287,92 +211,7 @@ public class UserDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			if (rs.next()) {
-				user = new User();
-				
-				user.email = email;
-				user.id = rs.getInt("id");
-				user.password = rs.getString("password");
-				
-				Role role = new Role();
-				role.id = rs.getInt("role");
-				role.name = rs.getString("ref_roles.name");
-				user.role = role;
-				
-				user.parent = new User();
-				user.parent.id = rs.getInt("parentId");
-				user.parent.name = rs.getString("parentUser.name");
-				
-				UserStatus status = new UserStatus();
-				status.id = rs.getInt("status");
-				status.name = rs.getString("ref_status.name");
-				user.status = status;
-				
-				Locale locale = new Locale();
-				locale.abbr = rs.getString("locale");
-				locale.name = rs.getString("ref_locale.name");
-				user.locale = locale;
-				
-				user.name = rs.getString("name");
-				user.addr1 = rs.getString("addr1");
-				user.addr2 = rs.getString("addr2");
-				user.city = rs.getString("city");
-				user.county = rs.getString("county");
-				user.postcode = rs.getString("postcode");
-				
-				Country country = new Country();
-				country.id = rs.getInt("country");
-				country.name = rs.getString("ref_country.name");
-				country.abbr = rs.getString("ref_country.abbr");
-				user.country = country;
-				
-				user.mobile = rs.getString("mobile");
-				user.homeTel = rs.getString("homeTel");
-				user.workTel = rs.getString("workTel");
-				
-				user.binLevelAlert = rs.getInt("binLevelAlert");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
-				if (lastLoggedIn == null) {
-					user.lastLoggedIn = null;
-				}
-				else {
-					java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
-					user.lastLoggedIn = lastLoggedInInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					user.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					user.lastActivity = lastActivityInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					user.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					user.insertDate = insertDateInstant;
-				}
-				user.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					user.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					user.modifiedDate = modifiedDateInstant;
-				}
-				user.modifiedBy = rs.getInt("modifiedBy");
-
+				user = setUserValues(rs);
 			}
 
 		} catch (SQLException ex) {
@@ -404,94 +243,7 @@ public class UserDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				User user = new User();
-
-				int userId = rs.getInt("id");
-
-				user.id = userId;
-				user.email = rs.getString("email");
-				user.password = rs.getString("password");
-				
-				Role role = new Role();
-				role.id = rs.getInt("role");
-				role.name = rs.getString("ref_roles.name");
-				user.role = role;
-				
-				user.parent = new User();
-				user.parent.id = rs.getInt("parentId");
-				user.parent.name = rs.getString("parentUser.name");
-				
-				UserStatus status = new UserStatus();
-				status.id = rs.getInt("status");
-				status.name = rs.getString("ref_status.name");
-				user.status = status;
-				
-				Locale locale = new Locale();
-				locale.abbr = rs.getString("locale");
-				locale.name = rs.getString("ref_locale.name");
-				user.locale = locale;
-				
-				user.name = rs.getString("name");
-				user.addr1 = rs.getString("addr1");
-				user.addr2 = rs.getString("addr2");
-				user.city = rs.getString("city");
-				user.county = rs.getString("county");
-				user.postcode = rs.getString("postcode");
-				
-				Country country = new Country();
-				country.id = rs.getInt("country");
-				country.name = rs.getString("ref_country.name");
-				country.abbr = rs.getString("ref_country.abbr");
-				user.country = country;
-				
-				user.mobile = rs.getString("mobile");
-				user.homeTel = rs.getString("homeTel");
-				user.workTel = rs.getString("workTel");
-				
-				user.binLevelAlert = rs.getInt("binLevelAlert");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
-				if (lastLoggedIn == null) {
-					user.lastLoggedIn = null;
-				}
-				else {
-					java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
-					user.lastLoggedIn = lastLoggedInInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					user.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					user.lastActivity = lastActivityInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					user.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					user.insertDate = insertDateInstant;
-				}
-				user.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					user.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					user.modifiedDate = modifiedDateInstant;
-				}
-				user.modifiedBy = rs.getInt("modifiedBy");
-
+				User user = setUserValues(rs);
 
 				users.add(user);
 			}
@@ -523,92 +275,10 @@ public class UserDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				User user = new User();
-
-				int userId = rs.getInt("id");
-
-				Role role = new Role();
-				role.id = rs.getInt("role");
-				role.name = rs.getString("ref_roles.name");
-				user.role = role;
+				User user = setUserValues(rs);
 
 				// Only add the main Admin users and other users
-				if ((userId == 1 && role.id == 0) || (userId != 1 && role.id > 0)) {
-					user.id = userId;
-					user.email = rs.getString("email");
-					user.password = rs.getString("password");
-					
-					UserStatus status = new UserStatus();
-					status.id = rs.getInt("status");
-					status.name = rs.getString("ref_status.name");
-					user.status = status;
-					
-					Locale locale = new Locale();
-					locale.abbr = rs.getString("locale");
-					locale.name = rs.getString("ref_locale.name");
-					user.locale = locale;
-					
-					user.name = rs.getString("name");
-					user.addr1 = rs.getString("addr1");
-					user.addr2 = rs.getString("addr2");
-					user.city = rs.getString("city");
-					user.county = rs.getString("county");
-					user.postcode = rs.getString("postcode");
-					
-					Country country = new Country();
-					country.id = rs.getInt("country");
-					country.name = rs.getString("ref_country.name");
-					country.abbr = rs.getString("ref_country.abbr");
-					user.country = country;
-					
-					user.mobile = rs.getString("mobile");
-					user.homeTel = rs.getString("homeTel");
-					user.workTel = rs.getString("workTel");
-					
-					user.binLevelAlert = rs.getInt("binLevelAlert");
-					
-					// Convert database timestamp(UTC date) to local time instant
-					Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
-					if (lastLoggedIn == null) {
-						user.lastLoggedIn = null;
-					}
-					else {
-						java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
-						user.lastLoggedIn = lastLoggedInInstant;
-					}
-					
-					// Convert database timestamp(UTC date) to local time instant
-					Timestamp lastActivity = rs.getTimestamp("lastActivity");
-					if (lastActivity == null) {
-						user.lastActivity = null;
-					}
-					else {
-						java.time.Instant lastActivityInstant = lastActivity.toInstant();
-						user.lastActivity = lastActivityInstant;
-					}
-					
-					// Convert database timestamp(UTC date) to local time instant
-					Timestamp insertDate = rs.getTimestamp("insertDate");
-					if (insertDate == null) {
-						user.insertDate = null;
-					}
-					else {
-						java.time.Instant insertDateInstant = insertDate.toInstant();
-						user.insertDate = insertDateInstant;
-					}
-					user.insertBy = rs.getInt("insertBy");
-					
-					// Convert database timestamp(UTC date) to local time instant
-					Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-					if (modifiedDate == null) {
-						user.modifiedDate = null;
-					}
-					else {
-						java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-						user.modifiedDate = modifiedDateInstant;
-					}
-					user.modifiedBy = rs.getInt("modifiedBy");
-	
+				if ((user.id == 1 && user.role.id == 0) || (user.id != 1 && user.role.id > 0)) {
 					users.add(user);
 				}
 			}
@@ -640,90 +310,7 @@ public class UserDAL {
 			ResultSet rs = spStmt.executeQuery();
 
 			while (rs.next()) {
-				User user = new User();
-
-				int userId = rs.getInt("id");
-
-				user.id = userId;
-				user.email = rs.getString("email");
-				user.password = rs.getString("password");
-				
-				Role role = new Role();
-				role.id = rs.getInt("role");
-				role.name = rs.getString("ref_roles.name");
-				user.role = role;
-				
-				UserStatus status = new UserStatus();
-				status.id = rs.getInt("status");
-				status.name = rs.getString("ref_status.name");
-				user.status = status;
-				
-				Locale locale = new Locale();
-				locale.abbr = rs.getString("locale");
-				locale.name = rs.getString("ref_locale.name");
-				user.locale = locale;
-				
-				user.name = rs.getString("name");
-				user.addr1 = rs.getString("addr1");
-				user.addr2 = rs.getString("addr2");
-				user.city = rs.getString("city");
-				user.county = rs.getString("county");
-				user.postcode = rs.getString("postcode");
-				
-				Country country = new Country();
-				country.id = rs.getInt("country");
-				country.name = rs.getString("ref_country.name");
-				country.abbr = rs.getString("ref_country.abbr");
-				user.country = country;
-				
-				user.mobile = rs.getString("mobile");
-				user.homeTel = rs.getString("homeTel");
-				user.workTel = rs.getString("workTel");
-				
-				user.binLevelAlert = rs.getInt("binLevelAlert");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastLoggedIn = rs.getTimestamp("lastLoggedIn");
-				if (lastLoggedIn == null) {
-					user.lastLoggedIn = null;
-				}
-				else {
-					java.time.Instant lastLoggedInInstant = lastLoggedIn.toInstant();
-					user.lastLoggedIn = lastLoggedInInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp lastActivity = rs.getTimestamp("lastActivity");
-				if (lastActivity == null) {
-					user.lastActivity = null;
-				}
-				else {
-					java.time.Instant lastActivityInstant = lastActivity.toInstant();
-					user.lastActivity = lastActivityInstant;
-				}
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp insertDate = rs.getTimestamp("insertDate");
-				if (insertDate == null) {
-					user.insertDate = null;
-				}
-				else {
-					java.time.Instant insertDateInstant = insertDate.toInstant();
-					user.insertDate = insertDateInstant;
-				}
-				user.insertBy = rs.getInt("insertBy");
-				
-				// Convert database timestamp(UTC date) to local time instant
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				if (modifiedDate == null) {
-					user.modifiedDate = null;
-				}
-				else {
-					java.time.Instant modifiedDateInstant = modifiedDate.toInstant();
-					user.modifiedDate = modifiedDateInstant;
-				}
-				user.modifiedBy = rs.getInt("modifiedBy");
-
+				User user = setUserValues(rs);
 
 				users.add(user);
 			}
@@ -892,22 +479,23 @@ public class UserDAL {
 		
 	}
 	
-	public static void updateLastLoggedIn(int userId) {
+	public static void updateLastLoggedIn(int userId, String gcmToken) {
 		// Implement this
-		log.info("UserDAL.get(email)");
+		log.info("UserDAL.updateLastLoggedIn(userId, gsmToken)");
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
 
-		String spCall = "{ call UpdateUserLastLoggedIn(?) }";
+		String spCall = "{ call UpdateUserLastLoggedIn(?, ?) }";
 		log.info("SP Call: " + spCall);
 		
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
 
 			spStmt.setInt(1, userId);
+			spStmt.setString(2, gcmToken);
 			spStmt.executeUpdate();
 			
 		} catch (SQLException ex) {
