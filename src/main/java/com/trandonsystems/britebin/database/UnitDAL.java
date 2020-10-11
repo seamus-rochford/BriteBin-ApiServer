@@ -186,7 +186,11 @@ public class UnitDAL {
 			if (rs.next()) {
 				unit = setUnitValues(rs);
 			} else {
-				throw new SQLException("No unit exists with serialNo = " + serialNo + " for customer with id = " + userFilterId);
+				// No Unit exist for serialNo for this customer - return an empty unit definition
+				unit = new Unit();
+				unit.id = 0;
+				// Do not throw an error because this will cause a raw data reading not to be saved to the data_readings table
+//				throw new SQLException("No unit exists with serialNo = " + serialNo + " for customer with id = " + userFilterId);
 			}
 
 		} catch (SQLException ex) {
@@ -240,12 +244,12 @@ public class UnitDAL {
 		double reading40percent = 0;
 		double reading100percent = 0;
 		
-		if (binType == 1) {
-			// Model 120
+		if (binType == 1 || binType == 5) {
+			// Model 120 (binType = 1) or Model 170 (binType = 5)
 			reading40percent = 49.4;
 			reading100percent = 18.0;
 		} else {
-			// Model 240, Model 360
+			// Model 240, Model 360, Model 600
 			reading40percent = 73.9;
 			reading100percent = 18.0;
 		}
@@ -274,8 +278,9 @@ public class UnitDAL {
 		double reading50percent = 0;
 		double reading100percent = 0;
 		
-		if (binType == 1) {
-			// Model 120 - uses reading at 50% to interpolate readings above and below 50%
+		if (binType == 1 || binType == 5) {
+			// Model 120 (binType = 1) or Model 170 (binType = 5)
+			// uses reading at 50% to interpolate readings above and below 50%
 			readingZeropercent = 156;
 			reading50percent = 53;
 			reading100percent = 29;

@@ -1008,7 +1008,7 @@ public class UnitResources {
 						.build();
 			}
 
-			int timezone = 0;  //  (PCB Timezone; Example GMT-2 would be -2)
+//			int timezone = 0;  //  (PCB Timezone; Example GMT-2 would be -2)
 			// Not allowed anymore - using UTC time zone
 //			if (queryParams.containsKey("timezone")) {
 //				timezone = Integer.parseInt(queryParams.getFirst("timezone"));
@@ -1016,11 +1016,11 @@ public class UnitResources {
 //				
 //				if (timezone <= 12) {
 //					return Response.status(Response.Status.BAD_REQUEST) // 400 
-//							.entity("Parameter <timezone> must be greater than 1 minute")
+//							.entity("Parameter <timezone> must be greater than or equal to 12")
 //							.build();
-//				} else if (timezone >= -12) {
+//				} else if (timezone >= 12) {
 //					return Response.status(Response.Status.BAD_REQUEST) // 400 
-//							.entity("Parameter <timezone> must be less than 256 minutes")
+//							.entity("Parameter <timezone> must be less than or equal to 12")
 //							.build();
 //				}
 //			} else {

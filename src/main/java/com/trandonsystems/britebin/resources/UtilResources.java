@@ -10,7 +10,7 @@ import java.io.OutputStream;
 public class UtilResources {
 
 	// These are for demo only
-	public static final String UPLOAD_FOLDER = "/uploadedFiles/";
+	public static final String UPLOAD_FOLDER = "/iot/smartwaste/apps/britebin/uploadedFiles/";
 	
 	/**
 	* Utility method to save InputStream data to target location/file
