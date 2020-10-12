@@ -9,8 +9,9 @@ import java.io.OutputStream;
 
 public class UtilResources {
 
-	// These are for demo only
+	// I need to change this to the second one for local testing and to the first one for deployment to linux server
 	public static final String UPLOAD_FOLDER = "/iot/smartwaste/apps/britebin/uploadedFiles/";
+//	public static final String UPLOAD_FOLDER = "/uploadedFiles/";
 	
 	/**
 	* Utility method to save InputStream data to target location/file
