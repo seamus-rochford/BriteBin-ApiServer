@@ -29,7 +29,7 @@ public class BriteBinApiKeyNeededFilter implements ContainerRequestFilter {
     	
         // Get the BRITEBIN_API_KEY HTTP Authorization header from the request
         String briteBinApiKey = requestContext.getHeaderString("BRITEBIN_API_KEY");
-        log.info("#### briteBinApiKey : " + briteBinApiKey);
+//        log.info("#### briteBinApiKey : " + briteBinApiKey);
 
         // Check if the HTTP Authorization header is present and formatted correctly
         if (briteBinApiKey == null) {
@@ -49,7 +49,7 @@ public class BriteBinApiKeyNeededFilter implements ContainerRequestFilter {
         		throw new Exception();
         	}
         	
-        	log.info("#### valid token : " + briteBinApiKey);
+//        	log.info("#### valid token : " + briteBinApiKey);
 
         } catch (Exception e) {
         	log.error("#### invalid token : " + briteBinApiKey);

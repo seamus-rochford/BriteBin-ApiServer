@@ -140,6 +140,30 @@ public class UnitResources {
 	}
     
 	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getUnitsUnregistered")
+	@JWTTokenNeeded
+	public Response getUnitsUnregistered() {
+		
+		try {
+	
+			// All units for this user
+			List<String> serialNos = unitServices.getUnitsUnregistered();
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(serialNos)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+    
+	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("deactivate")

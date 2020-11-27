@@ -10,6 +10,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.AlertDAL;
 import com.trandonsystems.britebin.model.Alert;
+import com.trandonsystems.britebin.model.AlertEmail;
+import com.trandonsystems.britebin.model.AlertObject;
+import com.trandonsystems.britebin.model.AlertPush;
+import com.trandonsystems.britebin.model.AlertSms;
 import com.trandonsystems.britebin.model.User;
 
 public class AlertServices {
@@ -66,6 +70,38 @@ public class AlertServices {
 			alerts.add(custDriverAlerts.get(i));
 		}		
 		return alerts;
+	}
+
+	public List<AlertObject> getAlerts(int alertTypeId, int unitId) {
+		log.info("AlertServices.getAlerts(customerId)");
+		
+		List<AlertObject> alerts = AlertDAL.getAlerts(alertTypeId, unitId);
+			
+		return alerts;
+	}
+
+	public List<AlertEmail> getAlertEmails(int alertId) {
+		log.info("AlertServices.getAlerts(customerId)");
+		
+		List<AlertEmail> alertEmailList = AlertDAL.getAlertEmail(alertId);
+			
+		return alertEmailList;
+	}
+
+	public List<AlertSms> getAlertSms(int alertId) {
+		log.info("AlertServices.getAlerts(customerId)");
+		
+		List<AlertSms> alertSmsList = AlertDAL.getAlertSms(alertId);
+			
+		return alertSmsList;
+	}
+
+	public List<AlertPush> getAlertPush(int alertId) {
+		log.info("AlertServices.getAlerts(customerId)");
+		
+		List<AlertPush> alertPushList = AlertDAL.getAlertPush(alertId);
+			
+		return alertPushList;
 	}
 
 	public List<Alert> saveAlerts(List<Alert> alerts, int actionUserId) throws SQLException {

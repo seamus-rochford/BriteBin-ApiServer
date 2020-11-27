@@ -22,6 +22,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.auth.JWTTokenNeeded;
 import com.trandonsystems.britebin.model.Alert;
+import com.trandonsystems.britebin.model.AlertEmail;
+import com.trandonsystems.britebin.model.AlertObject;
+import com.trandonsystems.britebin.model.AlertPush;
+import com.trandonsystems.britebin.model.AlertSms;
 import com.trandonsystems.britebin.services.AlertServices;
 import com.trandonsystems.britebin.services.UserServices;
 
@@ -270,6 +274,171 @@ public class AlertResources {
 			}
 			
 			List<Alert> alerts = alertServices.getAlertsDrivers(customerId);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(alerts)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+	
+	// THIS IS USED TO QUERY THE ALERT TABLE
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getAlerts")
+	@JWTTokenNeeded
+	public Response getAlerts(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int alertTypeId = 0;
+			if (queryParams.containsKey("alertTypeId")) {
+				alertTypeId = Integer.parseInt(queryParams.getFirst("alertTypeId"));
+				log.debug("alertTypeId: " + alertTypeId);
+			} else {
+				alertTypeId = -1;;
+			}
+			
+			int unitId = 0;
+			if (queryParams.containsKey("unitId")) {
+				unitId = Integer.parseInt(queryParams.getFirst("unitId"));
+				log.debug("unitId: " + unitId);
+			} else {
+				unitId = -1;
+			}
+			
+			List<AlertObject> alerts = alertServices.getAlerts(alertTypeId, unitId);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(alerts)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getAlertEmails")
+	@JWTTokenNeeded
+	public Response getAlertEmails(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int alertId = 0;
+			if (queryParams.containsKey("alertId")) {
+				alertId = Integer.parseInt(queryParams.getFirst("alertId"));
+				log.debug("alertTypeId: " + alertId);
+			} else {
+				alertId = -1;;
+			}
+			
+			
+			List<AlertEmail> alerts = alertServices.getAlertEmails(alertId);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(alerts)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getAlertSms")
+	@JWTTokenNeeded
+	public Response getAlertSms(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int alertId = 0;
+			if (queryParams.containsKey("alertId")) {
+				alertId = Integer.parseInt(queryParams.getFirst("alertId"));
+				log.debug("alertTypeId: " + alertId);
+			} else {
+				alertId = -1;;
+			}
+			
+			
+			List<AlertSms> alerts = alertServices.getAlertSms(alertId);
+			
+			return Response.status(Response.Status.OK) // 200 
+				.entity(alerts)
+				.build();
+			
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("ERROR: " + ex.getMessage())
+					.build();
+		}	
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("getAlertPush")
+	@JWTTokenNeeded
+	public Response getAlertPush(@Context UriInfo uriInfo, @Context HttpHeaders httpHeaders) {
+		
+		try {
+			MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+			MultivaluedMap<String, String> queryHeaders = httpHeaders.getRequestHeaders();
+			
+			String authorization = queryHeaders.getFirst("Authorization");
+			log.debug("authorization: " + authorization);
+	
+			String jwtToken = authorization.substring(7);
+			log.debug("jwtToken: " + jwtToken);
+	
+			int alertId = 0;
+			if (queryParams.containsKey("alertId")) {
+				alertId = Integer.parseInt(queryParams.getFirst("alertId"));
+				log.debug("alertTypeId: " + alertId);
+			} else {
+				alertId = -1;;
+			}
+			
+			
+			List<AlertPush> alerts = alertServices.getAlertPush(alertId);
 			
 			return Response.status(Response.Status.OK) // 200 
 				.entity(alerts)

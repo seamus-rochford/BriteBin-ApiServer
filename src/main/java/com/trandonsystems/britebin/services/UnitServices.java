@@ -38,6 +38,11 @@ public class UnitServices {
 		return UnitDAL.getUnits(userFilterId, includeDeactive);
 	}
 
+	public List<String> getUnitsUnregistered() throws SQLException {
+		log.info("UnitServices.getUnits(userFilterId)");
+		return UnitDAL.getUnitsUnregistered();
+	}
+
 	public void deactivate(int unitId, int actionUserId) throws SQLException {
 		log.info("UnitService.deactivate(unitId, actionUserId)");
 		

@@ -238,6 +238,40 @@ public class UnitDAL {
 	}
 	
 	
+	public static List<String> getUnitsUnregistered() throws SQLException {
+		// Return all unit serialNos where no unit is defined
+		
+		log.info("UnitDAL.getUnitsUnregistered()");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+
+		List<String> serailNos = new ArrayList<String>();
+
+		String spCall = "{ call getUnitsUnregistered(?) }";
+		log.info("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			ResultSet rs = spStmt.executeQuery();
+
+			while (rs.next()) {
+				String serailNo = rs.getString("serialNo");
+
+				serailNos.add(serailNo);
+			}
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+
+		return serailNos;
+	}
+	
+	
 	public static int computePercentageTekelek(int binType, int value) {
 		int result = 0;
 		

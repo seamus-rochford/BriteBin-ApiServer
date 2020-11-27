@@ -29,7 +29,7 @@ public class JWTTokenNeededFilter implements ContainerRequestFilter {
     	
         // Get the HTTP Authorization header from the request
         String authorizationHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
-        logger.info("#### authorizationHeader : " + authorizationHeader);
+//        logger.info("#### authorizationHeader : " + authorizationHeader);
 
         // Check if the HTTP Authorization header is present and formatted correctly
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -43,7 +43,7 @@ public class JWTTokenNeededFilter implements ContainerRequestFilter {
         try {
             // Validate the token
         	JsonWebToken.decodeJWT(token);
-            logger.info("#### valid token : " + token);
+//            logger.info("#### valid token : " + token);
 
         } catch (Exception e) {
             logger.error("#### invalid token : " + token);
