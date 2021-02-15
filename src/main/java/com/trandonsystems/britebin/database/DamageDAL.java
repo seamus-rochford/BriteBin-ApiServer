@@ -34,7 +34,7 @@ public class DamageDAL {
 
 		log.info("DamageDAL.getDamage(id)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -92,7 +92,7 @@ public class DamageDAL {
 
 		log.info("DamageDAL.getDamageHistoryImage(id)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -125,7 +125,7 @@ public class DamageDAL {
 		
 		log.info("UnitDAL.getUnits(userFilterId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -183,7 +183,7 @@ public class DamageDAL {
 		
 		log.info("UnitDAL.getDamages(filterDamageStatusId, filterFromDate, filterToDate, userFilterId, locale)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -255,7 +255,7 @@ public class DamageDAL {
 		
 		log.info("UnitDAL.getDamages(filterDamageStatusId, filterFromDate, filterToDate, userFilterId, locale)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -327,7 +327,7 @@ public class DamageDAL {
 		log.info("DamageDAL.report(damageType, unitId, comment, actionUserId)");
 		
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -366,7 +366,7 @@ public class DamageDAL {
 		log.info("DamageDAL.report(damageType, unitId, comment, actionUserId)");
 		
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -409,7 +409,7 @@ public class DamageDAL {
 		log.info("DamageDAL.assign(damageId, assignedUserId, comment, actionUserId, locale)");
 		
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -443,7 +443,7 @@ public class DamageDAL {
 		log.info("DamageDAL.close(damageId, comment, actionUserId, locale)");
 		
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}

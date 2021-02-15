@@ -132,7 +132,7 @@ public class UserDAL {
 //
 //		log.info("UserDAL.getBySQL");
 //		try {
-//			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+//			Class.forName("com.mysql.cj.jdbc.Driver");
 //		} catch (Exception ex) {
 //			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 //		}
@@ -161,7 +161,7 @@ public class UserDAL {
 
 		log.info("UserDAL.get(userFilterId, id)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -193,7 +193,7 @@ public class UserDAL {
 
 		log.info("UserDAL.get(userFilterId, email)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -225,7 +225,7 @@ public class UserDAL {
 
 		log.info("UserDAL.getUsers(userFilterId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -258,7 +258,7 @@ public class UserDAL {
 
 		log.info("UserDAL.getPossibleParents(userFilterId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -293,7 +293,7 @@ public class UserDAL {
 
 		log.info("UserDAL.getPossibleBinParents(userFilterId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -346,7 +346,7 @@ public class UserDAL {
 	// Update user - NOTE: Pwd is NOT updated
 	public static User update(User user, int currentUserId) throws Exception {
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -425,7 +425,7 @@ public class UserDAL {
 
 	public static User updateStatus(User user, int status, int modifiedByUserId) throws Exception {
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -483,7 +483,7 @@ public class UserDAL {
 		// Implement this
 		log.info("UserDAL.updateLastLoggedIn(userId, gsmToken)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -509,7 +509,7 @@ public class UserDAL {
 		log.info("UserDAL.resetPassword(user)");
 
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -543,7 +543,7 @@ public class UserDAL {
 		log.info("UserDAL.resetPassword(user, actionUserId)");
 
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -572,7 +572,7 @@ public class UserDAL {
 		log.info("UserDAL.setUserStatus(" + userId + ", " + userStatus + ", " + actionUserId + ")");
 
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -602,7 +602,7 @@ public class UserDAL {
 		log.info("UserDAL.setUserStatus(" + email + ", " + userStatus + ", " + actionUserId + ")");
 
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -630,7 +630,7 @@ public class UserDAL {
 	public static User save (User user, int actionUserId) throws SQLException {
 		log.info("UserDAL.save(user, inActionId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}

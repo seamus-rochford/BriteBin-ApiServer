@@ -41,7 +41,7 @@ public class GuestDAL {
 
 		log.info("GuestDAL.getGuestUnit(guestUnitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -76,7 +76,7 @@ public class GuestDAL {
 
 		log.info("GuestDAL.deleteGuestUnit(guestUnitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -106,7 +106,7 @@ public class GuestDAL {
 
 		log.info("GuestDAL.deleteGuestUnits(guestId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -137,7 +137,7 @@ public class GuestDAL {
 		
 		log.info("GuestDAL.getGuestUnits(guestId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -170,7 +170,7 @@ public class GuestDAL {
  	public static void save(GuestUnit guestUnit) throws SQLException {
 		log.info("GuestDAL.save(guestUnit, actionUserId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}

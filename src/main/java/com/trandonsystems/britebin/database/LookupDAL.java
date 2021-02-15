@@ -29,7 +29,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getBinLevels(" + locale + ")");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -64,7 +64,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getBinTypes(" + locale + ")");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -101,7 +101,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getBinTypes");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -136,7 +136,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getCountries");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -172,7 +172,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getDeviceTypes");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -207,7 +207,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getLocales");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -242,7 +242,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getRoles");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -277,7 +277,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getStatus");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -312,7 +312,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getDamageStatus");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -347,7 +347,7 @@ public class LookupDAL {
 		
 		log.info("LookupDAL.getDamageTypes");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}

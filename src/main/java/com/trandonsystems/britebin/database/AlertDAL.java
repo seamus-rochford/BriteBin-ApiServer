@@ -87,7 +87,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsAdmin(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -120,7 +120,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsDistributors(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -153,7 +153,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsAdminTechnicians(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -186,7 +186,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsDistributorTechnicians(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -219,7 +219,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsCorporate(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -252,7 +252,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsCustomer(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -285,7 +285,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsCorporateDrivers(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -318,7 +318,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertsCustomerDrivers(customerId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -377,7 +377,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlerts(alertTypeId, unitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -411,7 +411,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertEmails(alertTypeId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -471,7 +471,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertSms(alertTypeId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -533,7 +533,7 @@ public class AlertDAL {
 		
 		log.info("AlertDAL.getAlertPush(alertTypeId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -593,7 +593,7 @@ public class AlertDAL {
 	public static List<Alert> saveAlerts (List<Alert> alerts, int actionUserId) throws SQLException {
 		log.info("AlertDAL.saveAlerts(alerts, inActionId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}

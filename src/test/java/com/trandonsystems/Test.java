@@ -175,12 +175,12 @@ public class Test {
 		// lorand = lorandK
 		// seamus = Rebel1
 		// tomislav = tom
-		String passwordEncrypted = UserDAL.encryptPassword("tommy");
+		String passwordEncrypted = UserDAL.encryptPassword("Seamus@123");
 		System.out.println(passwordEncrypted);
-		boolean result = UserDAL.passwordMatch("tommy", passwordEncrypted);
+		boolean result = UserDAL.passwordMatch("Seamus@123", passwordEncrypted);
 		System.out.println("Password Matches: " + result);
 
-		String encryptedStr = Util.MD5("tommy");
+		String encryptedStr = Util.MD5("Rebel1");
 		System.out.println(encryptedStr);
 	
 	}
@@ -253,13 +253,11 @@ public class Test {
 	
 	private static void testSaveUser() {
 
-		User user = us.getUser(1, 6);
+		User user = us.getUser(1, 1);
 		
 		log.info("Data: " + gson.toJson(user));
 		
-		user.id = 0;
-		user.name = "Rochford Seamus";
-		user.password = "seamus";
+		user.password = "Seamus@123";
 		try {	
 			user = us.save(user, 1);
 		} catch (Exception ex) {
@@ -461,17 +459,25 @@ public class Test {
 	
 	public static void main(String[] args) {
 
+		String sigfoxId = "1E50F51";
+		while (sigfoxId.length() < 8) {
+			sigfoxId = "0" + sigfoxId;
+		}
+
+		System.out.println(sigfoxId);
+		
+		
 		String msg = BuildJson();
 		System.out.println(msg);
 
 //		testSchedulingTask();
 		
-		try {
-			String result = PushNotificationHelper.sendPushNotification("00353872646379");
-			System.out.println("Result: " + result);
-		} catch(Exception ex) {
-			System.out.println("ERROR: " + ex.getMessage());
-		}
+//		try {
+//			String result = PushNotificationHelper.sendPushNotification("00353872646379");
+//			System.out.println("Result: " + result);
+//		} catch(Exception ex) {
+//			System.out.println("ERROR: " + ex.getMessage());
+//		}
 		
 //		testLoadImage();
 		
@@ -598,6 +604,8 @@ public class Test {
 
 	
 //		testUsers();
+		
+		testSaveUser();
 		
 //		testUnitReadings();
 

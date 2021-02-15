@@ -17,11 +17,11 @@ public class SystemDAL {
 
 	static Logger log = Logger.getLogger(SystemDAL.class);
 
-	public static String getSysConfigValue(String name) {
+	public static String getSysConfigValue(String name) throws SQLException {
 		
 		log.info("SystemDAL.getSysConfigValue(" + name + ")");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -42,17 +42,18 @@ public class SystemDAL {
 			}
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return configValue;
 	}
 
-	public static List<KeyValue> getSysConfigValues() {
+	public static List<KeyValue> getSysConfigValues() throws SQLException {
 		// I have this here for completeness - but it will be faster and easier if we do each of the calls as required from the
 		// page to get each of the values required
 		log.info("SystemDAL.getSysConfigValues()");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -77,6 +78,7 @@ public class SystemDAL {
 			
 		} catch (SQLException ex) {
 			log.error("ERROR: " + ex.getMessage());
+			throw ex;
 		}
 
 		return configValues;
@@ -87,7 +89,7 @@ public class SystemDAL {
 
 		log.info("SystemDAL.saveSystemConfigValue(kv, userId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}

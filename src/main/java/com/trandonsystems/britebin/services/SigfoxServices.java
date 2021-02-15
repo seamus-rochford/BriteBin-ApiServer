@@ -29,6 +29,7 @@ public class SigfoxServices {
 		UnitReading reading = new UnitReading();
 
 		reading.serialNo = sigfoxData.deviceID;
+		
 		try {
 			reading.rssi = Double.parseDouble(sigfoxData.rssi);
 		} catch (Exception ex) {
@@ -42,10 +43,11 @@ public class SigfoxServices {
 		
 		byte[] data = Hex.hexStringToByteArray(sigfoxData.data);
 		
-		// Pass userId = 1 (admin user) so they can have access to all units
-        Unit unit = UnitDAL.getUnit(1, reading.serialNo);
-
 		reading.msgType = data[0] & 0xff;
+		
+		 
+		// Pass userId = 1 (admin user) so they can have access to all units
+		Unit unit = UnitDAL.getUnit(1, reading.serialNo);
 		
 		UnitMessage unitMsg = new UnitMessage();
 		
@@ -89,7 +91,11 @@ public class SigfoxServices {
 			
 			unitMsg = UnitDAL.saveReading(rawDataId, unit.id, reading);
 			
-			unitMsg.serialNo = unit.serialNo;
+			if (reading.msgType == 6) {
+				unitMsg.serialNo = unit.sigfoxAltId;
+			} else {
+				unitMsg.serialNo = unit.serialNo;
+			}
 			break;
 		
 		case 5:  // Message Type = 5
@@ -155,7 +161,21 @@ public class SigfoxServices {
 			unitMsg.serialNo = unit.serialNo;
 
 			break;
+		
+		case 6:	 // Message Type 6 (This is to match a sigfoxId with a unit with a EUI-48 ID)
 			
+			int idLength = data[1] & 0xff;
+			
+			String eui48 = "";
+			for (int i = 2; i < idLength + 2; i++) {
+				eui48 += data[i] & 0xff;
+			}
+			log.info("Message Type 6: sigfoxId: " + sigfoxData.deviceID + "    EUI-18: " + eui48);
+			
+			// update sigfoxAltId in unit table to this sigfoxId for this serial no.
+			
+			// NOT IMPLEMENTED YET
+			break;
 		default:
 			throw new Exception("SigfoxServices.processData: Unknown message type msgType: " + reading.msgType);
 		}

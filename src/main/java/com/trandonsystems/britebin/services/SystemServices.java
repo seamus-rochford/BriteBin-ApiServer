@@ -16,12 +16,12 @@ public class SystemServices {
 	static Logger log = Logger.getLogger(SystemServices.class);
 	static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	public String getSysConfigValue(String name) {
+	public String getSysConfigValue(String name) throws SQLException {
 		log.info("SystemServices.getSysConfigValue()");
 		return SystemDAL.getSysConfigValue(name);
 	}
 
-	public List<KeyValue> getSysConfigValues() {
+	public List<KeyValue> getSysConfigValues() throws SQLException {
 		log.info("SystemServices.getSysConfigValues()");
 		return SystemDAL.getSysConfigValues();
 	}

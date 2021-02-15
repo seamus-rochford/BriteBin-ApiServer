@@ -18,7 +18,7 @@ public class SmsDAL {
 		
 		log.info("SmsDAL.saveSmsDeliveryReport()");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}

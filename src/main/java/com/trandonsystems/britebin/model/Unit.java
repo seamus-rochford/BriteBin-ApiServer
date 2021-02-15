@@ -7,6 +7,9 @@ public class Unit {
 	public int id;
 	public User owner;
 	public String serialNo;
+	
+	public String sigfoxAltId;   // If serial number too large for sigfox use this id instead
+	
 	public DeviceType deviceType;
 	public String location;
 	public double latitude;

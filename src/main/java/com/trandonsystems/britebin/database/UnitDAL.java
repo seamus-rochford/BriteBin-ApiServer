@@ -121,6 +121,7 @@ public class UnitDAL {
 		}
 		unit.modifiedBy = rs.getInt("modifiedBy");
 		
+		unit.sigfoxAltId = rs.getString("units.sigfoxAltId");
 		
 		return unit;
 	}
@@ -130,7 +131,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnit(userFilterId, id)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -166,7 +167,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnit(userFilterId, serialNo)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -202,12 +203,48 @@ public class UnitDAL {
 	}
 
 	
+	public static Unit getUnitBySigfoxId(String sigfoxId) throws SQLException {
+
+		log.info("UnitDAL.getUnitBySigfoxId(sigfoxId)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call GetUnitBySigfoxId(?) }";
+		log.info("SP Call: " + spCall);
+		
+		Unit unit = new Unit();
+		
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setString(1, sigfoxId.toUpperCase());
+			ResultSet rs = spStmt.executeQuery();
+
+			if (rs.next()) {
+				unit = setUnitValues(rs);
+			} else {
+				// No Unit exist for this sigfoxId 
+				throw new SQLException("No unit exists with sigfoxId = " + sigfoxId.toUpperCase());
+			}
+
+		} catch (SQLException ex) {
+			log.error(ex.getMessage());
+			throw ex;
+		}
+
+		return unit;
+	}
+
+	
 	public static List<Unit> getUnits(int userFilterId, boolean includeDeactive) throws SQLException {
 		// Return all units based on "parentId" hierarchy
 		
 		log.info("UnitDAL.getUnits(userFilterId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -243,7 +280,7 @@ public class UnitDAL {
 		
 		log.info("UnitDAL.getUnitsUnregistered()");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -516,7 +553,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -552,7 +589,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadings(userFilterId, serialNo, limit)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -589,7 +626,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadingsFirst(userFilterId, unitId, noRecords)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -625,7 +662,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -662,7 +699,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -699,7 +736,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadings(unitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -737,7 +774,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getUnitReadings(userFilterId, serialNo, limit)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -771,7 +808,7 @@ public class UnitDAL {
 	private static void RecoverReadings(String serialNo, int unitId) throws SQLException {
 		log.info("UnitDAL.RecoverReadings(serialNo, unitId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -813,7 +850,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.getLatestReadings(userFilterId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -848,7 +885,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.saveRawData(data) - start");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 			throw new SQLException("ERROR: Can't create instance of driver" + ex.getMessage());
@@ -883,7 +920,7 @@ public class UnitDAL {
 	public static List<RawData> getUnprocessedRawData(String source) throws SQLException {
 		log.info("UnitDAL.getUnprocessData(" + source + ")");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -931,7 +968,7 @@ public class UnitDAL {
 	public static UnitMessage getUnitMsg(Connection conn, String serialNo) throws SQLException {
 		log.info("UnitDAL.getUnit(conn, serialNo)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -988,7 +1025,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.saveReading(rawDataId, unitId, reading)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -1060,7 +1097,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.saveReading(rawDataId, unitId, reading)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -1125,7 +1162,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.saveReadingFirmware(rawDataId, unitId, reading)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -1170,7 +1207,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.saveReadingFirmwareOnly(rawDataId, unitId, reading)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -1207,7 +1244,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.saveMessage(unitId, msg)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -1241,7 +1278,7 @@ public class UnitDAL {
 
 		log.info("UnitDAL.markMessageAsSent(unitMsg)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
 		}
@@ -1265,7 +1302,7 @@ public class UnitDAL {
  	public static void deactivate(int unitId, int userActionId) throws SQLException {
 		log.info("UnitDAL.deactivate(unitId, actionUserId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -1293,7 +1330,7 @@ public class UnitDAL {
  	public static void activate(int unitId, int userActionId) throws SQLException {
 		log.info("UnitDAL.activate(unitId, actionUserId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
@@ -1321,13 +1358,17 @@ public class UnitDAL {
  	public static Unit save(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitDAL.save(unit, actionUserId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
 		
-		String spCall = "{ call SaveUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		String spCall = "{ call SaveUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
+		
+		if (unit.sigfoxAltId == null) {
+			unit.sigfoxAltId = "";
+		}
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
@@ -1335,16 +1376,17 @@ public class UnitDAL {
 			spStmt.setLong(1, unit.id);
 			spStmt.setInt(2, unit.owner.id);
 			spStmt.setString(3, unit.serialNo.toUpperCase());
-			spStmt.setInt(4, unit.deviceType.id);
-			spStmt.setString(5, unit.location);
-			spStmt.setDouble(6, unit.latitude);
-			spStmt.setDouble(7, unit.longitude);
-			spStmt.setInt(8, unit.binType.id);
-			spStmt.setInt(9, unit.contentType.id);
-			spStmt.setInt(10, unit.useBinTypeLevel ? 1 : 0);
-			spStmt.setInt(11, unit.emptyLevel);
-			spStmt.setInt(12, unit.fullLevel);
-			spStmt.setInt(13, actionUserId);
+			spStmt.setString(4, unit.sigfoxAltId.toUpperCase());
+			spStmt.setInt(5, unit.deviceType.id);
+			spStmt.setString(6, unit.location);
+			spStmt.setDouble(7, unit.latitude);
+			spStmt.setDouble(8, unit.longitude);
+			spStmt.setInt(9, unit.binType.id);
+			spStmt.setInt(10, unit.contentType.id);
+			spStmt.setInt(11, unit.useBinTypeLevel ? 1 : 0);
+			spStmt.setInt(12, unit.emptyLevel);
+			spStmt.setInt(13, unit.fullLevel);
+			spStmt.setInt(14, actionUserId);
 		    
 			spStmt.registerOutParameter(1, Types.BIGINT);
 			
@@ -1369,12 +1411,12 @@ public class UnitDAL {
  	public static Unit install(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitDAL.install(unit, actionUserId)");
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (Exception ex) {
 			log.error("ERROR: " + ex.getMessage());
 		}
 		
-		String spCall = "{ call InstallUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
+		String spCall = "{ call InstallUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
@@ -1383,16 +1425,17 @@ public class UnitDAL {
 			spStmt.setLong(1, unit.id);
 			spStmt.setInt(2, unit.owner.id);
 			spStmt.setString(3, unit.serialNo.toUpperCase());
-			spStmt.setInt(4, unit.deviceType.id);
-			spStmt.setString(5, unit.location);
-			spStmt.setDouble(6, unit.latitude);
-			spStmt.setDouble(7, unit.longitude);
-			spStmt.setInt(8, unit.binType.id);
-			spStmt.setInt(9, unit.contentType.id);
-			spStmt.setInt(10, unit.useBinTypeLevel ? 1 : 0);
-			spStmt.setInt(11, unit.emptyLevel);
-			spStmt.setInt(12, unit.fullLevel);
-			spStmt.setInt(13, actionUserId);
+			spStmt.setString(4, unit.sigfoxAltId.toUpperCase());
+			spStmt.setInt(5, unit.deviceType.id);
+			spStmt.setString(6, unit.location);
+			spStmt.setDouble(7, unit.latitude);
+			spStmt.setDouble(8, unit.longitude);
+			spStmt.setInt(9, unit.binType.id);
+			spStmt.setInt(10, unit.contentType.id);
+			spStmt.setInt(11, unit.useBinTypeLevel ? 1 : 0);
+			spStmt.setInt(12, unit.emptyLevel);
+			spStmt.setInt(13, unit.fullLevel);
+			spStmt.setInt(14, actionUserId);
 		    
 			spStmt.registerOutParameter(1, Types.BIGINT);
 			
