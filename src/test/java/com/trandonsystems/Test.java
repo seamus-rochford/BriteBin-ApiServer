@@ -8,6 +8,7 @@ import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.database.UserDAL;
 import com.trandonsystems.britebin.database.Util;
 import com.trandonsystems.britebin.model.Alert;
+import com.trandonsystems.britebin.model.BinType;
 import com.trandonsystems.britebin.model.Damage;
 import com.trandonsystems.britebin.model.KeyValue;
 import com.trandonsystems.britebin.model.RawData;
@@ -18,6 +19,7 @@ import com.trandonsystems.britebin.model.User;
 import com.trandonsystems.britebin.resources.SystemResources;
 import com.trandonsystems.britebin.services.AlertServices;
 import com.trandonsystems.britebin.services.DamageServices;
+import com.trandonsystems.britebin.services.Hex;
 import com.trandonsystems.britebin.services.SigfoxServices;
 import com.trandonsystems.britebin.services.UnitServices;
 import com.trandonsystems.britebin.services.UserServices;
@@ -461,17 +463,67 @@ public class Test {
 	
 	public static void main(String[] args) {
 
-		String msg = BuildJson();
-		System.out.println(msg);
+		int number = 78;
+		System.out.println("Number: "+ number + "   Hex (2 digit): " + Hex.IntToHex(78, 2));
+
+		BinType tekBinType = new BinType();
+		tekBinType.id = 1;
+		
+		int percent = 95;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 90;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 85;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 80;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 75;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		
+		tekBinType.id = 2;
+		percent = 95;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 90;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 85;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 80;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		percent = 75;
+		System.out.println("Tekelek bin Type: " + tekBinType + " percentage: " + percent + "% = value: " + UnitDAL.computeReadingFromPercentTekelek(tekBinType, percent));
+		
+		int value = 60;
+		BinType binType = new BinType();
+		binType.id = 2;
+		
+		int level = UnitDAL.computePercentageTekelek(binType, value);
+		System.out.println("Level " + value + " for binType " + binType + ": " + level + "%");
+		
+		value = 34;
+		level = UnitDAL.computePercentageTekelek(binType, value);
+		System.out.println("Level " + value + " for binType " + binType + ": " + level + "%");
+		
+		
+		value = 76;
+		binType.id = 2;
+		level = UnitDAL.computePercentageTekelek(binType, value);
+		System.out.println("Level " + value + " for binType " + binType + ": " + level + "%");
+		
+		value = 0;
+		level = UnitDAL.computePercentageTekelek(binType, value);
+		System.out.println("Level " + value + " for binType " + binType + ": " + level + "%");
+				
+//		String msg = BuildJson();
+//		System.out.println(msg);
 
 //		testSchedulingTask();
 		
-		try {
-			String result = PushNotificationHelper.sendPushNotification("00353872646379");
-			System.out.println("Result: " + result);
-		} catch(Exception ex) {
-			System.out.println("ERROR: " + ex.getMessage());
-		}
+//		try {
+//			String result = PushNotificationHelper.sendPushNotification("00353872646379");
+//			System.out.println("Result: " + result);
+//		} catch(Exception ex) {
+//			System.out.println("ERROR: " + ex.getMessage());
+//		}
 		
 //		testLoadImage();
 		
@@ -488,79 +540,133 @@ public class Test {
 		
 //		processRawData();
 		
-//		int percent = UnitDAL.computePercentagePelBin(1, 28);
-//		log.info("Level 28: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 29);
-//		log.info("Level 29: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 35);
-//		log.info("Level 35: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 52);
-//		log.info("Level 52: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 53);
-//		log.info("Level 53: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 54);
-//		log.info("Level 54: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 100);
-//		log.info("Level 100: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 156);
-//		log.info("Level 156: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(1, 160);
-//		log.info("Level 160: " + percent + " %");
-//
-//		log.info("BinType 2 & 3:");
-//		percent = UnitDAL.computePercentagePelBin(2, 145);
-//		log.info("Level 145: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(2, 140);
-//		log.info("Level 140: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(2, 90);
-//		log.info("Level 90: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(2, 42);
-//		log.info("Level 42: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(2, 30);
-//		log.info("Level 30: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(2, 21);
-//		log.info("Level 21: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentagePelBin(2, 18);
-//		log.info("Level 18: " + percent + " %");
+		log.info("");
+		log.info("=================================================================================================");
+		log.info("Pel Bin - BinType 1");
+		log.info("");
+		
+		binType.id = 1;
+		percent = UnitDAL.computePercentagePelBin(binType, 28);
+		log.info("Level 28: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 29);
+		log.info("Level 29: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 35);
+		log.info("Level 35: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 52);
+		log.info("Level 52: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 53);
+		log.info("Level 53: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 54);
+		log.info("Level 54: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 100);
+		log.info("Level 100: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 156);
+		log.info("Level 156: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 160);
+		log.info("Level 160: " + percent + " %");
+
+		log.info("");
+		log.info("=================================================================================================");
+		log.info("Pel Bin - BinType 2 & 3");
+		log.info("");		
+
+		binType.id = 2;
+		percent = UnitDAL.computePercentagePelBin(binType, 145);
+		log.info("Level 145: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 140);
+		log.info("Level 140: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 90);
+		log.info("Level 90: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 42);
+		log.info("Level 42: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 30);
+		log.info("Level 30: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 21);
+		log.info("Level 21: " + percent + " %");
+
+		percent = UnitDAL.computePercentagePelBin(binType, 18);
+		log.info("Level 18: " + percent + " %");
 
 		
-//		int percent = UnitDAL.computePercentageTekelek(2, 150);
-//		log.info("Level 150: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 100);
-//		log.info("Level 100: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 75);
-//		log.info("Level 75: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 73);
-//		log.info("Level 73: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 72);
-//		log.info("Level 72: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 45);
-//		log.info("Level 45: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 18);
-//		log.info("Level 18: " + percent + " %");
-//
-//		percent = UnitDAL.computePercentageTekelek(2, 16);
-//		log.info("Level 16: " + percent + " %");
+		log.info("");
+		log.info("=================================================================================================");
+		log.info("Tekelek - BinType 1");
+		log.info("");
+		
+		binType.id = 1;
+		percent = UnitDAL.computePercentageTekelek(binType, 150);
+		log.info("Level 150: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 100);
+		log.info("Level 100: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 75);
+		log.info("Level 75: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 73);
+		log.info("Level 73: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 72);
+		log.info("Level 72: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 60);
+		log.info("Level 72: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 45);
+		log.info("Level 45: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 34);
+		log.info("Level 18: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 18);
+		log.info("Level 18: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 16);
+		log.info("Level 16: " + percent + " %");
+		
+		
+		log.info("");
+		log.info("=================================================================================================");
+		log.info("Tekelek - BinType 2 ");
+		log.info("");
+		
+		binType.id = 2; 
+		percent = UnitDAL.computePercentageTekelek(binType, 150);
+		log.info("Level 150: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 100);
+		log.info("Level 100: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 75);
+		log.info("Level 75: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 73);
+		log.info("Level 73: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 72);
+		log.info("Level 72: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 45);
+		log.info("Level 45: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 18);
+		log.info("Level 18: " + percent + " %");
+
+		percent = UnitDAL.computePercentageTekelek(binType, 16);
+		log.info("Level 16: " + percent + " %");
 
 		
 //		try {

@@ -27,6 +27,7 @@ import com.trandonsystems.britebin.model.UnitMessage;
 import com.trandonsystems.britebin.model.UnitReading;
 import com.trandonsystems.britebin.model.UnitStatus;
 import com.trandonsystems.britebin.model.User;
+import com.trandonsystems.britebin.services.Hex;
 
 public class UnitDAL {
 
@@ -272,13 +273,13 @@ public class UnitDAL {
 	}
 	
 	
-	public static int computePercentageTekelek(int binType, int value) {
+	public static int computePercentageTekelek(BinType binType, int value) {
 		int result = 0;
 		
 		double reading40percent = 0;
 		double reading100percent = 0;
 		
-		if (binType == 1 || binType == 5) {
+		if (binType.id == 1 || binType.id == 5) {
 			// Model 120 (binType = 1) or Model 170 (binType = 5)
 			reading40percent = 49.4;
 			reading100percent = 18.0;
@@ -288,8 +289,8 @@ public class UnitDAL {
 			reading100percent = 18.0;
 		}
 		
-		double dominator = reading40percent - reading100percent;
-		result = (int)Math.round(100 - (value - reading100percent) / dominator * 60);
+		double dominator = (reading40percent - reading100percent) / 60;
+		result = (int)Math.round(100 - (value - reading100percent) / dominator);
 
 		log.debug("computePercentageTekelek - Value: " + value + "    Percentage: " + result + " %");
 		
@@ -303,8 +304,33 @@ public class UnitDAL {
 		return result;
 	}
 	
+	public static long computeReadingFromPercentTekelek(BinType binType, int percent) {
+		
+		double reading40percent = 0;
+		double reading100percent = 0;
+		
+		if (binType.id == 1 || binType.id == 5) {
+			// Model 120 (binType = 1) or Model 170 (binType = 5)
+			reading40percent = 49.4;
+			reading100percent = 18.0;
+		} else {
+			// Model 240, Model 360, Model 600
+			reading40percent = 73.9;
+			reading100percent = 18.0;
+		}
+		
+		double onePercent = (reading100percent - reading40percent) / 60.0;
+		
+		double correspondingReading = reading100percent - (100 - percent) * onePercent;
+		
+		if (correspondingReading < 21.0) {
+			correspondingReading = 21.0;
+		}
+		
+		return Math.round(correspondingReading);
+	}
 	
-	public static int computePercentagePelBin(int binType, int value) {
+	public static int computePercentagePelBin(BinType binType, int value) {
 		int result = 0;
 		
 		double readingZeropercent = 0;
@@ -312,7 +338,7 @@ public class UnitDAL {
 		double reading50percent = 0;
 		double reading100percent = 0;
 		
-		if (binType == 1 || binType == 5) {
+		if (binType.id == 1 || binType.id == 5) {
 			// Model 120 (binType = 1) or Model 170 (binType = 5)
 			// uses reading at 50% to interpolate readings above and below 50%
 			readingZeropercent = 156;
@@ -468,12 +494,12 @@ public class UnitDAL {
 		// Compute Percentages
 		if (unit.deviceType.id == 1) {
 			// Tekelek Sensor
-			unitReading.binLevelPercent = computePercentageTekelek(unit.binType.id, unitReading.binLevel);
-			unitReading.binLevelBCPercent = computePercentageTekelek(unit.binType.id, unitReading.binLevelBC);
+			unitReading.binLevelPercent = computePercentageTekelek(unit.binType, unitReading.binLevel);
+			unitReading.binLevelBCPercent = computePercentageTekelek(unit.binType, unitReading.binLevelBC);
 		} else {
 			// Pel Bin Sensor
-			unitReading.binLevelPercent = computePercentagePelBin(unit.binType.id, unitReading.binLevel);
-			unitReading.binLevelBCPercent = computePercentagePelBin(unit.binType.id, unitReading.binLevelBC);
+			unitReading.binLevelPercent = computePercentagePelBin(unit.binType, unitReading.binLevel);
+			unitReading.binLevelBCPercent = computePercentagePelBin(unit.binType, unitReading.binLevelBC);
 		}
 		
 		// Decide on the BinLevel
@@ -1204,6 +1230,7 @@ public class UnitDAL {
 	
 	
 	public static long saveMessage(int unitId, byte[] msg, int userId) throws SQLException{
+		// Save a message to be sent back to a PEL unit sensor
 
 		log.info("UnitDAL.saveMessage(unitId, msg)");
 		try {
@@ -1237,7 +1264,43 @@ public class UnitDAL {
 	}
 	
 
+	public static long saveTekelekMessage(int unitId, String msg, int actionUserId) throws SQLException{
+		// Save a message to be sent back to a PEl unit sensor
+
+		log.info("UnitDAL.saveTekelekMessage(unitId, msg)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: Can't create instance of driver" + ex.getMessage());
+		}
+
+		String spCall = "{ call SaveTekelekMessage(?, ?, ?) }";
+		log.info("SP Call: " + spCall);
+
+		long id = 0;
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, unitId);
+			spStmt.setString(2, msg);
+			spStmt.setInt(3, actionUserId);
+			ResultSet rs = spStmt.executeQuery();
+			
+			if (rs.next()) {
+				id = rs.getInt("id");
+			}
+
+		} catch (SQLException ex) {
+			log.error("ERROR: " + ex.getMessage());
+			throw ex;
+		}
+		
+		return id;
+	}
+	
+
 	public static void markMessageAsSent(UnitMessage unitMsg) throws SQLException{
+		// Mark a PEL Unit sensor message as sent 
 
 		log.info("UnitDAL.markMessageAsSent(unitMsg)");
 		try {
@@ -1318,6 +1381,13 @@ public class UnitDAL {
 	}
 
  	
+ 	public static String GenerateTekelekMsgAlarmFull(BinType binType, int level) {
+ 		
+ 		int alarmValue = (int)computeReadingFromPercentTekelek(binType, level);
+ 		
+ 		return "S4=7C" + Hex.IntToHex(alarmValue, 2);
+ 	}
+ 	
  	public static Unit save(Unit unit, int actionUserId) throws SQLException {
 		log.info("UnitDAL.save(unit, actionUserId)");
 		try {
@@ -1329,34 +1399,58 @@ public class UnitDAL {
 		String spCall = "{ call SaveUnit(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
 		log.debug("SP Call: " + spCall);
 
-		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
-				CallableStatement spStmt = conn.prepareCall(spCall)) {
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password)) {
+			
+			try (CallableStatement spStmt = conn.prepareCall(spCall)) {
 
-			spStmt.setLong(1, unit.id);
-			spStmt.setInt(2, unit.owner.id);
-			spStmt.setString(3, unit.serialNo.toUpperCase());
-			spStmt.setInt(4, unit.deviceType.id);
-			spStmt.setString(5, unit.location);
-			spStmt.setDouble(6, unit.latitude);
-			spStmt.setDouble(7, unit.longitude);
-			spStmt.setInt(8, unit.binType.id);
-			spStmt.setInt(9, unit.contentType.id);
-			spStmt.setInt(10, unit.useBinTypeLevel ? 1 : 0);
-			spStmt.setInt(11, unit.emptyLevel);
-			spStmt.setInt(12, unit.fullLevel);
-			spStmt.setInt(13, actionUserId);
-		    
-			spStmt.registerOutParameter(1, Types.BIGINT);
-			
-			spStmt.executeUpdate();
-			
-			unit.id = spStmt.getInt(1);
-			
-			log.debug("userId: " + unit.id);
-			
+				conn.setAutoCommit(false);
+				
+				spStmt.setLong(1, unit.id);
+				spStmt.setInt(2, unit.owner.id);
+				spStmt.setString(3, unit.serialNo.toUpperCase());
+				spStmt.setInt(4, unit.deviceType.id);
+				spStmt.setString(5, unit.location);
+				spStmt.setDouble(6, unit.latitude);
+				spStmt.setDouble(7, unit.longitude);
+				spStmt.setInt(8, unit.binType.id);
+				spStmt.setInt(9, unit.contentType.id);
+				spStmt.setInt(10, unit.useBinTypeLevel ? 1 : 0);
+				spStmt.setInt(11, unit.emptyLevel);
+				spStmt.setInt(12, unit.fullLevel);
+				spStmt.setInt(13, actionUserId);
+			    
+				spStmt.registerOutParameter(1, Types.BIGINT);
+				
+				spStmt.executeUpdate();
+				
+				unit.id = spStmt.getInt(1);
+				
+				if (unit.binType.id == DeviceType.NON_COMPACTING) {
+					// Tekelek Sensor - send message to sensor to set alarm
+					int fullLevel = unit.fullLevel;
+					if (unit.useBinTypeLevel) {
+						fullLevel = unit.binType.fullLevel;
+					}
+					
+					String tekelekMsg = GenerateTekelekMsgAlarmFull(unit.binType, fullLevel);
+					
+					saveTekelekMessage(unit.id, tekelekMsg, actionUserId);
+				}
+				
+				conn.commit();
+				
+				log.debug("userId: " + unit.id);
+				
+			} catch (SQLException ex) {
+				
+				conn.rollback();
+				log.error("UserDAL.save: " + ex.getMessage());
+				throw ex;
+			}
 		} catch (SQLException ex) {
-			log.error("UserDAL.save: " + ex.getMessage());
-			throw ex;
+			log.error(ex.getMessage());
+
+			throw ex;			
 		}
 		
 		log.info("UserDAL.save(unit, actionUserId) - end");

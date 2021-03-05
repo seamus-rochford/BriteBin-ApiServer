@@ -6,5 +6,6 @@ public class BinType {
 	public String name;
 	public int emptyLevel;
 	public int fullLevel;
+	public int capacity;
 	
 }

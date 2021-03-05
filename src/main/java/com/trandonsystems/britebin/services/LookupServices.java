@@ -1,5 +1,6 @@
 package com.trandonsystems.britebin.services;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -7,6 +8,7 @@ import org.apache.log4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.trandonsystems.britebin.database.LookupDAL;
+import com.trandonsystems.britebin.database.UnitDAL;
 import com.trandonsystems.britebin.model.ContentType;
 import com.trandonsystems.britebin.model.BinLevel;
 import com.trandonsystems.britebin.model.BinType;
@@ -16,6 +18,7 @@ import com.trandonsystems.britebin.model.DamageType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UserStatus;
 
 public class LookupServices {
@@ -74,4 +77,10 @@ public class LookupServices {
 		return LookupDAL.getDamageTypes(locale);
 	}
 	
+	public BinType save(BinType binType) throws SQLException {
+		log.info("LookupService.save(binType");
+		
+		return LookupDAL.save(binType);
+	}
+		
 }

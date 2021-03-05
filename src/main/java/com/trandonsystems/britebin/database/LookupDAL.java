@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import com.trandonsystems.britebin.model.DamageType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UserStatus;
 
 public class LookupDAL {
@@ -378,5 +380,45 @@ public class LookupDAL {
 		return damageTypeList;
 	}
 
+ 	public static BinType save(BinType binType) throws SQLException {
+		log.info("LookupDAL.save(binType)");
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+		} catch (Exception ex) {
+			log.error("ERROR: " + ex.getMessage());
+		}
+		
+		String spCall = "{ call SaveRefBinType(?, ?, ?, ?, ?) }";
+		log.debug("SP Call: " + spCall);
+
+		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
+				CallableStatement spStmt = conn.prepareCall(spCall)) {
+
+			spStmt.setInt(1, binType.id);
+			spStmt.setString(2, binType.name);
+			spStmt.setInt(3, binType.emptyLevel);
+			spStmt.setInt(4, binType.fullLevel);
+			spStmt.setInt(5, binType.capacity);
+		    
+			spStmt.registerOutParameter(1, Types.BIGINT);
+			
+			spStmt.executeUpdate();
+			
+			binType.id = spStmt.getInt(1);
+			
+			log.debug("binTypeId: " + binType.id);
+			
+		} catch (SQLException ex) {
+			log.error("UserDAL.save: " + ex.getMessage());
+			throw ex;
+		}
+		
+		log.info("LookupDAL.save(binType) - end");
+
+		return binType;
+		
+	}
+
+ 	
 
 }

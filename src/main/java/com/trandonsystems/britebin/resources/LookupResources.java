@@ -2,7 +2,10 @@ package com.trandonsystems.britebin.resources;
 
 import java.util.List;
 
+import javax.json.Json;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -25,6 +28,7 @@ import com.trandonsystems.britebin.model.DamageType;
 import com.trandonsystems.britebin.model.DeviceType;
 import com.trandonsystems.britebin.model.Locale;
 import com.trandonsystems.britebin.model.Role;
+import com.trandonsystems.britebin.model.Unit;
 import com.trandonsystems.britebin.model.UserStatus;
 import com.trandonsystems.britebin.services.LookupServices;
 import com.trandonsystems.britebin.services.UserServices;
@@ -377,5 +381,47 @@ public class LookupResources {
 					.build();
 		}	
 	}
+	
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("saveBinType")
+	@JWTTokenNeeded
+	public Response saveBinType(BinType binType) {
+
+		try {
+			log.info("POST: saveBinType");
+			log.info("Unit: " + gson.toJson(binType));
+			
+			binType = lookupServices.save(binType);
+			log.info("Saved binType: " + gson.toJson(binType));
+
+			String json = Json.createObjectBuilder()
+									.add("binType", gson.toJson(binType))
+									.build()
+									.toString();
+			
+			return Response.status(Response.Status.OK) // 200 
+					.entity(json)
+					.build();
+		
+		}
+		catch(Exception ex) {
+			log.error(Response.Status.BAD_REQUEST + " - " + ex.getMessage());
+
+			String errorMsg = ex.getMessage();
+			
+			String json = Json.createObjectBuilder()
+					.add("message", errorMsg)
+					.build()
+					.toString();
+			
+			return Response.status(Response.Status.BAD_REQUEST) // 400 
+					.entity(json)
+					.build();
+		}
+	}
+
 	
 }
