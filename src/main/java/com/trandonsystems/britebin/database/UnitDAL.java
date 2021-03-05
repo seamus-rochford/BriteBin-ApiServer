@@ -1372,7 +1372,7 @@ public class UnitDAL {
 
 		try (Connection conn = DriverManager.getConnection(Util.connUrl, Util.username, Util.password);
 				CallableStatement spStmt = conn.prepareCall(spCall)) {
-
+ 
 			spStmt.setLong(1, unit.id);
 			spStmt.setInt(2, unit.owner.id);
 			spStmt.setString(3, unit.serialNo.toUpperCase());
