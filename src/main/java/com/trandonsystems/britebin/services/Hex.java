@@ -45,4 +45,38 @@ public class Hex {
         return data;
     }
     
+    public static String IntToHex(int number, int digits) {
+    	// Convert number to hex with leading Zero's to digits length
+    	String hexResult = "";
+    	switch(digits) {
+    	case 1:
+    		hexResult = String.format("%1$01X", number);
+    		break;
+    	case 2:
+    		hexResult = String.format("%1$02X", number);
+    		break;
+    	case 3:
+    		hexResult = String.format("%1$03X", number);
+    		break;
+    	case 4:
+    		hexResult = String.format("%1$04X", number);
+    		break;
+    	case 5:
+    		hexResult = String.format("%1$05X", number);
+    		break;
+    	case 6:
+    		hexResult = String.format("%1$06X", number);
+    		break;
+    	case 7:
+    		hexResult = String.format("%1$07X", number);
+    		break;
+    	case 8:
+    		hexResult = String.format("%1$08X", number);
+    		break;
+    	case 9:
+    		hexResult = String.format("%1$09X", number);
+    		break;
+    	}
+    	return hexResult;
+    }
 }
